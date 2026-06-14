@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>주식거래대금순위</title>
+<title>주식거래대금분석</title>
 <link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"></noscript>
 <style>
@@ -262,7 +262,7 @@ tbody tr:hover{background:var(--sky50);}
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="4" height="8" rx="1"/><rect x="9" y="9" width="4" height="13" rx="1"/><rect x="16" y="4" width="4" height="18" rx="1"/></svg>
         </div>
         <div>
-          <div class="logo-title">주식거래대금순위</div>
+          <div class="logo-title">주식거래대금분석</div>
           <div class="logo-sub">거래대금 상위 종목 순위 분석</div>
         </div>
       </div>
@@ -321,6 +321,9 @@ let PERIOD = 5;        // 기간 (0=전체)
 let SEL_DATE = '';     // 일별/순위변동 탭 선택 날짜
 let ENTRANT_TOP_N = 10; // 상위권진입 기준 순위
 let HIST_STOCK = '';   // 종목이력 선택 종목
+let HIST_YEAR  = '';   // 종목이력 날짜 필터 — 년
+let HIST_MONTH = '';   // 종목이력 날짜 필터 — 월
+let HIST_DAY   = '';   // 종목이력 날짜 필터 — 일
 
 // ════════════════════════════════════════════════
 // 데모 데이터
@@ -528,7 +531,7 @@ function distinctDatesDesc(rows){ return [...new Set(rows.map(r=>r.date).filter(
 // ════════════════════════════════════════════════
 // 기간 헬퍼
 // ════════════════════════════════════════════════
-const PERIOD_OPTS = [{v:1,l:'1일'},{v:5,l:'5일'},{v:10,l:'10일'},{v:20,l:'20일'},{v:60,l:'60일'},{v:120,l:'120일'},{v:0,l:'전체'}];
+const PERIOD_OPTS = [{v:5,l:'5일'},{v:10,l:'10일'},{v:20,l:'20일'},{v:60,l:'60일'},{v:120,l:'120일'},{v:240,l:'240일'},{v:0,l:'전체'}];
 
 function getPeriodDates(period){
   const dates = distinctDatesDesc(VOLUMES);
@@ -547,6 +550,7 @@ function periodSelHtml(id, onChange){
 function setPeriod(v){
   PERIOD = Number(v);
   SEL_DATE = '';
+  HIST_YEAR = ''; HIST_MONTH = ''; HIST_DAY = '';
   renderCurrent();
 }
 function dateTripleSelHtml(){
@@ -588,6 +592,27 @@ function setDateD(dd){
   SEL_DATE = y&&m&&dd ? y+'-'+m+'-'+dd : '';
   renderCurrent();
 }
+function histDateTripleSelHtml(allHistRows){
+  const dates = [...new Set(allHistRows.map(r=>r.date).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
+  const years  = [...new Set(dates.map(d=>d.slice(0,4)))].sort((a,b)=>b.localeCompare(a));
+  const months = HIST_YEAR ? [...new Set(dates.filter(d=>d.startsWith(HIST_YEAR)).map(d=>d.slice(5,7)))].sort((a,b)=>b.localeCompare(a)) : [];
+  const days   = (HIST_YEAR && HIST_MONTH) ? dates.filter(d=>d.startsWith(HIST_YEAR+'-'+HIST_MONTH)).map(d=>d.slice(8,10)).sort((a,b)=>b.localeCompare(a)) : [];
+  return '<select class="sel" onchange="setHistDateY(this.value)">'
+    + '<option value="">연도</option>'
+    + years.map(y=>'<option value="'+y+'"'+(HIST_YEAR===y?' selected':'')+'>'+y+'년</option>').join('')
+    + '</select>'
+    + '<select class="sel" onchange="setHistDateM(this.value)">'
+    + '<option value="">월</option>'
+    + months.map(m=>'<option value="'+m+'"'+(HIST_MONTH===m?' selected':'')+'>'+Number(m)+'월</option>').join('')
+    + '</select>'
+    + '<select class="sel" onchange="setHistDateD(this.value)">'
+    + '<option value="">일</option>'
+    + days.map(d=>'<option value="'+d+'"'+(HIST_DAY===d?' selected':'')+'>'+Number(d)+'일</option>').join('')
+    + '</select>';
+}
+function setHistDateY(y){ HIST_YEAR=y; HIST_MONTH=''; HIST_DAY=''; renderHistory(); }
+function setHistDateM(m){ HIST_MONTH=m; HIST_DAY=''; renderHistory(); }
+function setHistDateD(d){ HIST_DAY=d; renderHistory(); }
 
 // ════════════════════════════════════════════════
 // TAB 1 — 일별 상위
@@ -871,7 +896,12 @@ function renderHistory(){
   const periodRows = rowsInPeriod(PERIOD);
   const allStocks = [...new Set(periodRows.map(r=>r.name))].sort();
   if(!HIST_STOCK || !allStocks.includes(HIST_STOCK)) HIST_STOCK = allStocks[0]||'';
-  const histRows = periodRows.filter(r=>r.name===HIST_STOCK).sort((a,b)=>a.date.localeCompare(b.date));
+  const allHistRows = periodRows.filter(r=>r.name===HIST_STOCK).sort((a,b)=>a.date.localeCompare(b.date));
+  const histRows = allHistRows.filter(r=>
+    (!HIST_YEAR  || r.date.startsWith(HIST_YEAR)) &&
+    (!HIST_MONTH || r.date.slice(5,7)===HIST_MONTH) &&
+    (!HIST_DAY   || r.date.slice(8,10)===HIST_DAY)
+  );
   const rankVals = histRows.map(r=>r.rank).filter(r=>validRank(r));
   const avgRank = rankVals.length ? (rankVals.reduce((s,v)=>s+v,0)/rankVals.length).toFixed(1) : '-';
   const bestRank = rankVals.length ? Math.min(...rankVals) : '-';
@@ -888,6 +918,7 @@ function renderHistory(){
   + '<div class="toolbar"><div class="f-row">'
   +   '<span class="f-label">기간</span>'+periodSelHtml('hisPeriod','setPeriod(this.value)')
   +   '<span class="f-label">종목</span><select class="sel" onchange="setHistStock(this.value)">'+stockOpts+'</select>'
+  +   '<span class="f-label">날짜</span>'+histDateTripleSelHtml(allHistRows)
   + '</div></div>'
   + (histRows.length===0
     ? '<div class="empty"><div class="ico">📭</div><div class="msg">해당 기간 데이터 없음</div></div>'
@@ -912,7 +943,7 @@ function renderHistory(){
     + '</div>'
   );
 }
-function setHistStock(v){ HIST_STOCK=v; renderHistory(); }
+function setHistStock(v){ HIST_STOCK=v; HIST_YEAR=''; HIST_MONTH=''; HIST_DAY=''; renderHistory(); }
 
 function rankTrendSvg(rows){
   if(!rows.length) return '';
