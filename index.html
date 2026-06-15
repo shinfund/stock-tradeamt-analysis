@@ -1060,10 +1060,12 @@ function renderTop10(){
   rows.forEach(function(r){
     const key = r.code || r.name;
     if(!stockMap[key]){
-      stockMap[key] = {name:r.name, code:r.code, days:0, ranks:[], amts:[], chgs:[], closes:[], series:[], lastDate:'', lastRank:null, lastChg:null, lastAmt:null, lastClose:null};
+      stockMap[key] = {name:r.name, code:r.code, dateSet:{}, ranks:[], amts:[], chgs:[], closes:[], series:[], lastDate:'', lastRank:null, lastChg:null, lastAmt:null, lastClose:null};
     }
     const s = stockMap[key];
-    s.days++;
+    // 같은 날짜 중복 행 방지: 날짜별 최초 1건만 집계
+    if(s.dateSet[r.date]) return;
+    s.dateSet[r.date] = true;
     if(validRank(r.rank)) s.ranks.push(r.rank);
     if(!safeN(r.amt)) s.amts.push(r.amt);
     if(!safeN(r.chg)) s.chgs.push(r.chg);
@@ -1086,13 +1088,14 @@ function renderTop10(){
   const olderSet  = new Set(olderDates);
 
   const stocks = Object.values(stockMap).map(function(s){
+    const days = Object.keys(s.dateSet).length;  // 고유 출현 날짜 수
     const avgRank = s.ranks.length ? (s.ranks.reduce(function(a,b){return a+b;},0)/s.ranks.length) : null;
     const bestRank = s.ranks.length ? Math.min.apply(null,s.ranks) : null;
     const worstRank = s.ranks.length ? Math.max.apply(null,s.ranks) : null;
     const avgAmt = s.amts.length ? (s.amts.reduce(function(a,b){return a+b;},0)/s.amts.length) : null;
     const avgChg = s.chgs.length ? (s.chgs.reduce(function(a,b){return a+b;},0)/s.chgs.length) : null;
     const totalDays = dates.length;
-    const rate = totalDays > 0 ? Math.round(s.days/totalDays*100) : 0;
+    const rate = totalDays > 0 ? Math.min(100, Math.round(days/totalDays*100)) : 0;
 
     // 시계열 정렬(오래된→최신)
     const ser = s.series.slice().sort(function(a,b){return a.date.localeCompare(b.date);});
@@ -1160,7 +1163,7 @@ function renderTop10(){
     const isHot = (isNew && (inflowPct==null||inflowPct>=0))
                || (inflowPct!=null && inflowPct>=30 && (rankTrend!=null && rankTrend>=2));
 
-    return {...s, avgRank, bestRank, worstRank, avgAmt, avgChg, rate, consec,
+    return {...s, days, avgRank, bestRank, worstRank, avgAmt, avgChg, rate, consec,
             inflowPct, rankTrend, priceChg, momentum, flowState, flowCls,
             recentAmtAvg, olderAmtAvg, isNew, isHot};
   });
@@ -1271,7 +1274,7 @@ function renderTop10(){
   +   '<div class="sc-title">TOP 10 출현 빈도 <span class="sub">기간 내 10위 이내 등장 일수 순</span></div>'
   +   '<div class="bars">'
   +   stocks.slice().sort(function(a,b){return b.days-a.days;}).map(function(s){
-        const ratio = s.days/Math.max(totalDays,1);
+        const ratio = Math.min(s.days/Math.max(totalDays,1), 1);
         const w = Math.max(ratio*100,2);
         // 색상 = 출현빈도 기준 (높을수록 진한 sky)
         const col = ratio>=0.8?'#0C447C':(ratio>=0.5?'#185FA5':(ratio>=0.3?'#378ADD':'#B5D4F4'));
