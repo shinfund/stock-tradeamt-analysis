@@ -46,7 +46,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;font-size:15px;line-heigh
 
 /* ── TAB NAV ── */
 .top-nav{background:#fff;border-bottom:1.5px solid var(--border);display:flex;padding:0 4px;max-width:1100px;margin:0 auto;}
-.tab-btn{flex:1;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--txt2);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;padding:11px 2px;-webkit-tap-highlight-color:transparent;transition:color .15s;position:relative;white-space:nowrap;}
+.tab-btn{flex:1;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--txt2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;padding:13px 4px;-webkit-tap-highlight-color:transparent;transition:color .15s;position:relative;white-space:nowrap;}
 .tab-btn.on{color:var(--sky600);}
 .tab-btn.on::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:2.5px;background:var(--sky);border-radius:2px 2px 0 0;}
 .tab-btn:hover:not(.on){color:var(--txt);}
@@ -95,7 +95,7 @@ tbody td.l{text-align:left;}
 tbody tr:hover{background:var(--sky50);}
 .t-rank{font-weight:800;color:var(--txt2);min-width:28px;}
 .t-name{font-weight:700;}
-.t-name .c{font-size:12px;color:var(--txt2);font-weight:600;margin-left:4px;}
+.t-name .c{font-size:12.5px;color:var(--txt2);font-weight:600;margin-left:4px;}
 .t-chg{font-weight:700;}
 .t-amt{font-weight:700;}
 .t-up{color:var(--red);} .t-down{color:var(--blue);}
@@ -115,18 +115,74 @@ tbody tr:hover{background:var(--sky50);}
 .bar-fill{height:100%;border-radius:6px;transition:width .5s;min-width:2px;}
 .bar-val{font-size:12.5px;font-weight:800;color:var(--txt2);text-align:right;}
 
-/* ── BAND ANALYSIS ── */
-.band-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;}
-.band-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r12);padding:14px;box-shadow:var(--shadow);}
-.band-title{font-size:13.5px;font-weight:800;color:var(--sky800);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-.band-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:9px;background:var(--sky50);color:var(--sky600);}
-
 /* ── HISTORY CHART ── */
 .trend-wrap{width:100%;overflow-x:auto;}
 .trend-svg{display:block;min-width:280px;}
 
 /* ── BADGES ── */
 .bdg{font-size:12px;font-weight:700;padding:3px 9px;border-radius:11px;letter-spacing:-.01em;white-space:nowrap;}
+
+/* ── TOP10 정렬 칩 ── */
+.sort-chip{font-size:13.5px;font-weight:700;font-family:inherit;padding:7px 15px;border-radius:16px;border:1.5px solid var(--border);background:var(--card);color:var(--txt2);cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+.sort-chip:hover{border-color:var(--sky100);color:var(--sky600);}
+.sort-chip.on{background:var(--sky);border-color:var(--sky);color:#fff;}
+
+/* ── 모멘텀 카드 ── */
+.mom-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r12);padding:14px;transition:.18s;}
+.mom-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px);}
+.mom-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.mom-medal{font-size:18px;}
+.mom-name{font-size:15px;font-weight:800;color:var(--txt);}
+.mom-score{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.02em;}
+.mom-score-u{font-size:13px;font-weight:700;margin-left:2px;}
+.mom-tags{margin:8px 0 10px;}
+.mom-tag{font-size:13px;font-weight:700;padding:4px 10px;border-radius:9px;}
+.mom-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;}
+.mom-stat{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;}
+.mom-stat-l{color:var(--txt2);font-weight:600;}
+.mom-stat-v{font-weight:800;color:var(--txt);}
+
+/* ── 자금흐름 상태 뱃지 ── */
+.fs-bdg{font-size:12px;font-weight:600;padding:3px 8px;border-radius:8px;white-space:nowrap;}
+.fs-hot{background:var(--red50);color:var(--red);}
+.fs-up{background:var(--coral50);color:var(--coral);}
+.fs-out{background:var(--blue50);color:var(--blue);}
+.fs-hold{background:var(--teal50);color:var(--teal600);}
+.fs-flat{background:var(--gray50);color:var(--gray600);}
+
+/* ── 모멘텀 바 (테이블 내) ── */
+.mom-cell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px 0;}
+.mom-bar-wrap{width:58px;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.mom-bar-fill{height:100%;border-radius:4px;transition:width .4s;}
+.mom-cell-num{font-size:11px;font-weight:600;line-height:1;text-align:center;color:var(--txt2);}
+
+/* ── 모멘텀 1위 대표 카드 ── */
+.mom-card-lead{padding:16px 18px;}
+.mom-lead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.mom-lead-left{display:flex;flex-direction:column;gap:8px;}
+.mom-card-lead .mom-head{margin-bottom:0;}
+.mom-card-lead .mom-tags{margin:0;}
+.mom-card-lead .mom-score{font-size:34px;}
+
+/* ── 🔥 주목 종목 ── */
+.hot-sc{border:1.5px solid var(--coral);background:linear-gradient(180deg,#FFF8F5 0%,var(--card) 60%);}
+.hot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+.hot-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r12);padding:12px;cursor:pointer;transition:.18s;}
+.hot-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px);border-color:var(--coral);}
+.hot-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.hot-tag{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:8px;}
+.hot-new{background:var(--coral50);color:var(--coral);}
+.hot-surge{background:var(--red50);color:var(--red);}
+.hot-rank{font-size:12.5px;font-weight:700;color:var(--purple);}
+.hot-name{font-size:15px;font-weight:800;color:var(--txt);margin-bottom:9px;}
+.hot-metrics{display:flex;flex-direction:column;gap:5px;}
+.hot-metric{display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+.hot-metric-l{color:var(--txt2);font-weight:600;}
+
+/* ── 범례 ── */
+.legend-row{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;padding-top:11px;border-top:1px dashed var(--border);}
+.legend-item{font-size:13px;color:var(--txt2);line-height:1.55;}
+.legend-item b{color:var(--txt);font-weight:700;}
 
 /* ── EMPTY / LOADING ── */
 .empty{text-align:center;padding:48px 20px;color:var(--txt3);}
@@ -161,7 +217,7 @@ tbody tr:hover{background:var(--sky50);}
 /* 모바일 ≤600px */
 @media(max-width:600px){
   .main{padding:10px 10px 14px;}
-  .tab-btn{font-size:11.5px;}
+  .tab-btn{font-size:13px;}
   table{font-size:13px;}
   thead th,tbody td{padding:8px 5px;}
   .t-name .c{display:none;}
@@ -170,7 +226,6 @@ tbody tr:hover{background:var(--sky50);}
   .kpi-card{min-width:66px;padding:9px 7px;}
   .kpi-card .num{font-size:15px;}
   .kpi-card .lbl{font-size:12px;}
-  .band-grid{grid-template-columns:1fr;}
   .sel{min-height:40px;}
 }
 
@@ -185,7 +240,7 @@ tbody tr:hover{background:var(--sky50);}
   .kpi-card{min-width:56px;padding:8px 5px;}
   .kpi-card .num{font-size:14px;}
   .kpi-card .lbl{font-size:11px;margin-top:2px;}
-  .tab-btn{font-size:11px;padding:9px 1px;}
+  .tab-btn{font-size:12px;padding:10px 2px;}
   .sc{padding:11px;}
   table{font-size:12.5px;}
   thead th,tbody td{padding:7px 4px;}
@@ -221,7 +276,6 @@ tbody tr:hover{background:var(--sky50);}
   .main{padding:0 0 24px;}
   .kpi-card{padding:14px 20px;}
   .kpi-card .num{font-size:20px;}
-  .band-grid{grid-template-columns:repeat(3,1fr);}
 }
 </style>
 </head>
@@ -280,19 +334,19 @@ tbody tr:hover{background:var(--sky50);}
       </div>
     </div>
     <div class="top-nav" id="nav" role="tablist">
-      <button class="tab-btn on" data-tab="daily" role="tab">일별 상위</button>
-      <button class="tab-btn" data-tab="change" role="tab">순위 변동</button>
-      <button class="tab-btn" data-tab="entry" role="tab">상위 진입</button>
-      <button class="tab-btn" data-tab="band" role="tab">순위 분포</button>
-      <button class="tab-btn" data-tab="history" role="tab">종목 이력</button>
+      <button class="tab-btn on" data-tab="daily" role="tab">일별</button>
+      <button class="tab-btn" data-tab="top10" role="tab">TOP 10</button>
+      <button class="tab-btn" data-tab="change" role="tab">순위변동</button>
+      <button class="tab-btn" data-tab="entry" role="tab">상위진입</button>
+      <button class="tab-btn" data-tab="history" role="tab">종목이력</button>
     </div>
   </div>
 
   <div class="main" id="main">
     <div class="panel on" id="panel-daily"></div>
+    <div class="panel" id="panel-top10"></div>
     <div class="panel" id="panel-change"></div>
     <div class="panel" id="panel-entry"></div>
-    <div class="panel" id="panel-band"></div>
     <div class="panel" id="panel-history"></div>
   </div>
 </div>
@@ -339,7 +393,7 @@ let HIST_DAY   = '';   // 종목이력 날짜 필터 — 일
     ['두산로보틱스','454910','2026-06-13',5,68900,8.1,11800000,0.81],
     ['HD현대중공업','329180','2026-06-13',6,358000,1.2,2100000,0.75],
     ['NAVER','035420','2026-06-13',7,211000,-1.1,3300000,0.70],
-    ['LIG넥스원','079550','2026-06-13',8,182000,2.8,3600000,0.66],
+    ['LIG디펜스','079550','2026-06-13',8,182000,2.8,3600000,0.66],
     ['셀트리온','068270','2026-06-13',9,192000,-0.5,3100000,0.60],
     ['기아','000270','2026-06-13',10,101000,-1.3,5600000,0.57],
     ['에코프로비엠','247540','2026-06-13',11,134000,3.1,4000000,0.54],
@@ -436,7 +490,7 @@ let HIST_DAY   = '';   // 종목이력 날짜 필터 — 일
     ['에코프로비엠','247540','2026-06-05',6,128000,-4.23,4300000,0.55],
     ['한화에어로스페이스','012450','2026-06-05',7,695000,3.61,700000,0.49],
     ['HD현대중공업','329180','2026-06-05',8,345000,1.4,1300000,0.45],
-    ['LIG넥스원','079550','2026-06-05',9,176000,2.1,1850000,0.33],
+    ['LIG디펜스','079550','2026-06-05',9,176000,2.1,1850000,0.33],
     ['두산로보틱스','454910','2026-06-05',10,58200,12.5,5000000,0.29],
     ['기아','000270','2026-06-05',11,99500,0.5,2000000,0.20],
     ['한미반도체','042700','2026-06-05',12,127000,3.2,1500000,0.19],
@@ -601,7 +655,7 @@ function setPeriod(v){
   HIST_YEAR = ''; HIST_MONTH = ''; HIST_DAY = '';
   renderCurrent();
 }
-function pickerPeriod(){ return (curTab==='daily'||curTab==='change'||curTab==='band'||curTab==='entry') ? 0 : PERIOD; }
+function pickerPeriod(){ return (curTab==='daily'||curTab==='change'||curTab==='entry') ? 0 : PERIOD; }
 function dateTripleSelHtml(){
   const dates = getPeriodDates(pickerPeriod());
   const sy = SEL_DATE ? SEL_DATE.slice(0,4) : '';
@@ -911,61 +965,415 @@ function renderEntry(){
 function setEntrantN(v){ ENTRANT_TOP_N=Number(v); renderEntry(); }
 
 // ════════════════════════════════════════════════
-// TAB 4 — 순위대별 분포
+// TAB 4 — TOP 10 분석
 // ════════════════════════════════════════════════
-const BANDS = [
-  {label:'1위',min:1,max:1,col:'#D8302F'},
-  {label:'2~3위',min:2,max:3,col:'#D8842F'},
-  {label:'4~5위',min:4,max:5,col:'#BA9117'},
-  {label:'6~10위',min:6,max:10,col:'#1D9E75'},
-  {label:'11~20위',min:11,max:20,col:'#378ADD'},
-  {label:'21위+',min:21,max:999,col:'#534AB7'},
+let TOP10_PERIOD = 5; // 독립 기간 (1/5/10/20/60/120/240/0=전체)
+let TOP10_SORT = 'momentum'; // 정렬: momentum/days/inflow/avgrank
+
+const TOP10_PERIOD_OPTS = [
+  {v:1,l:'1일'},{v:5,l:'5일'},{v:10,l:'10일'},{v:20,l:'20일'},
+  {v:60,l:'60일'},{v:120,l:'120일'},{v:240,l:'240일'},{v:0,l:'전체'}
 ];
-function renderBand(){
-  const panel = document.getElementById('panel-band');
+
+function setTop10Period(v){
+  TOP10_PERIOD = Number(v);
+  renderTop10();
+}
+function setTop10Sort(v){
+  TOP10_SORT = v;
+  renderTop10();
+}
+
+function top10PeriodSelHtml(){
+  return '<select class="sel period-sel" onchange="setTop10Period(this.value)" aria-label="기간 선택">'
+    + TOP10_PERIOD_OPTS.map(function(o){
+        return '<option value="'+o.v+'"'+(TOP10_PERIOD===o.v?' selected':'')+'>'+o.l+'</option>';
+      }).join('')
+    + '</select>';
+}
+
+function getTop10PeriodDates(){
+  const allDates = distinctDatesDesc(VOLUMES);
+  if(!TOP10_PERIOD || TOP10_PERIOD >= allDates.length) return allDates;
+  return allDates.slice(0, TOP10_PERIOD);
+}
+
+function renderTop10(){
+  const panel = document.getElementById('panel-top10');
   if(!VOLUMES.length){ panel.innerHTML = emptyPanel(); return; }
-  const dates = getPeriodDates(0);
-  if(!SEL_DATE || !dates.includes(SEL_DATE)) SEL_DATE = dates[0]||'';
-  const rows = VOLUMES.filter(r=>r.date===SEL_DATE && validRank(r.rank)).sort((a,b)=>a.rank-b.rank);
-  const maxAmt = Math.max(...rows.map(r=>r.amt||0), 1);
-  const bandData = BANDS.map(band=>{
-    const inBand = rows.filter(r=>r.rank>=band.min&&r.rank<=band.max);
-    return {...band, stocks:inBand};
+
+  const dates = getTop10PeriodDates();
+  const dateSet = new Set(dates);
+
+  // ETF 판별: 종목명에 운용사/ETF 키워드 포함
+  function isEtf(name, code){
+    if(!name) return false;
+    const etfKeywords = ['KODEX','TIGER','KBSTAR','HANARO','KOSEF','ARIRANG','SOL ','ACE ','TIMEFOLIO','PLUS ','WON ','FOCUS','SMART','파워','KTOP','KCGI','마이다스','RISE','TREX','ETF','QV','IBK'];
+    const upper = name.toUpperCase();
+    // 키워드로 시작하거나 포함 여부
+    for(let i=0;i<etfKeywords.length;i++){
+      if(upper.indexOf(etfKeywords[i].trim()) === 0) return true;
+    }
+    // 종목코드 끝이 0이고 코드 2~3번째 자리가 특정 범위 (ETF 코드 대역: 069500~, 102xxx, 114xxx, 133xxx~, 160xxx~, 200xxx~, 250xxx~, 300xxx~ 등)
+    if(code && /^\d{6}$/.test(code)){
+      const n = parseInt(code, 10);
+      if(n>=69500&&n<70000) return true;   // 069500 KODEX200
+      if(n>=102000&&n<103000) return true;
+      if(n>=105000&&n<106000) return true;
+      if(n>=114000&&n<115000) return true;
+      if(n>=133000&&n<134000) return true;
+      if(n>=139000&&n<145000) return true;
+      if(n>=152000&&n<165000) return true;
+      if(n>=168000&&n<170000) return true;
+      if(n>=176000&&n<177000) return true;
+      if(n>=189000&&n<220000) return true;
+      if(n>=222000&&n<240000) return true;
+      if(n>=251000&&n<252000) return true;
+      if(n>=261000&&n<262000) return true;
+      if(n>=272000&&n<273000) return true;
+      if(n>=278000&&n<280000) return true;
+      if(n>=285000&&n<296000) return true;
+      if(n>=304000&&n<320000) return true;
+      if(n>=357000&&n<360000) return true;
+      if(n>=360000&&n<380000) return true;
+    }
+    return false;
+  }
+
+  // 우선주 판별: 종목명 끝 '우'/'우B'/'우C' 또는 코드 끝자리 5
+  function isPref(name, code){
+    if(name && /[우][BbCc]?$/.test(name.trim())) return true;
+    if(code && /^\d{6}$/.test(code) && code[5]==='5') return true;
+    return false;
+  }
+
+  const rows = VOLUMES.filter(function(r){
+    return dateSet.has(r.date)
+      && validRank(r.rank)
+      && r.rank <= 10
+      && !isEtf(r.name, r.code)
+      && !isPref(r.name, r.code);
   });
-  const totalAmt = rows.reduce((s,r)=>s+(r.amt||0),0);
-  const bandUpN = rows.filter(r=>(r.chg??0)>0).length;
-  const bandDownN = rows.filter(r=>(r.chg??0)<0).length;
-  const top10Amt = rows.filter(r=>r.rank<=10).reduce((s,r)=>s+(r.amt||0),0);
+
+  // 종목별 집계
+  const stockMap = {};
+  rows.forEach(function(r){
+    const key = r.code || r.name;
+    if(!stockMap[key]){
+      stockMap[key] = {name:r.name, code:r.code, days:0, ranks:[], amts:[], chgs:[], closes:[], series:[], lastDate:'', lastRank:null, lastChg:null, lastAmt:null, lastClose:null};
+    }
+    const s = stockMap[key];
+    s.days++;
+    if(validRank(r.rank)) s.ranks.push(r.rank);
+    if(!safeN(r.amt)) s.amts.push(r.amt);
+    if(!safeN(r.chg)) s.chgs.push(r.chg);
+    if(!safeN(r.close)) s.closes.push(r.close);
+    s.series.push({date:r.date, rank:r.rank, amt:r.amt, chg:r.chg, close:r.close});
+    if(!s.lastDate || r.date > s.lastDate){
+      s.lastDate = r.date;
+      s.lastRank = r.rank;
+      s.lastChg = r.chg;
+      s.lastAmt = r.amt;
+      s.lastClose = r.close;
+    }
+  });
+
+  const totalDaysG = dates.length;
+  const halfLen = Math.max(Math.floor(totalDaysG/2), 1);
+  const recentDates = dates.slice(0, halfLen);      // 최근 절반
+  const olderDates  = dates.slice(halfLen);          // 이전 절반
+  const recentSet = new Set(recentDates);
+  const olderSet  = new Set(olderDates);
+
+  const stocks = Object.values(stockMap).map(function(s){
+    const avgRank = s.ranks.length ? (s.ranks.reduce(function(a,b){return a+b;},0)/s.ranks.length) : null;
+    const bestRank = s.ranks.length ? Math.min.apply(null,s.ranks) : null;
+    const worstRank = s.ranks.length ? Math.max.apply(null,s.ranks) : null;
+    const avgAmt = s.amts.length ? (s.amts.reduce(function(a,b){return a+b;},0)/s.amts.length) : null;
+    const avgChg = s.chgs.length ? (s.chgs.reduce(function(a,b){return a+b;},0)/s.chgs.length) : null;
+    const totalDays = dates.length;
+    const rate = totalDays > 0 ? Math.round(s.days/totalDays*100) : 0;
+
+    // 시계열 정렬(오래된→최신)
+    const ser = s.series.slice().sort(function(a,b){return a.date.localeCompare(b.date);});
+
+    // 연속 출현(최신 날짜 기준)
+    let consec = 0;
+    for(let i=0;i<dates.length;i++){
+      if(rows.some(function(r){return r.date===dates[i]&&(r.code||r.name)===(s.code||s.name);})) consec++; else break;
+    }
+
+    // ── 자금 유입 변화: 최근 절반 평균 vs 이전 절반 평균 거래대금
+    const recentAmts = ser.filter(function(x){return recentSet.has(x.date)&&!safeN(x.amt);}).map(function(x){return x.amt;});
+    const olderAmts  = ser.filter(function(x){return olderSet.has(x.date)&&!safeN(x.amt);}).map(function(x){return x.amt;});
+    const recentAmtAvg = recentAmts.length ? recentAmts.reduce(function(a,b){return a+b;},0)/recentAmts.length : null;
+    const olderAmtAvg  = olderAmts.length  ? olderAmts.reduce(function(a,b){return a+b;},0)/olderAmts.length  : null;
+    let inflowPct = null;
+    if(recentAmtAvg!=null && olderAmtAvg!=null && olderAmtAvg>0){
+      inflowPct = Math.round((recentAmtAvg-olderAmtAvg)/olderAmtAvg*100);
+    }
+
+    // ── 순위 추세: 최근 절반 평균순위 vs 이전 절반 평균순위 (음수=순위 상승=좋음)
+    const recentRanks = ser.filter(function(x){return recentSet.has(x.date)&&validRank(x.rank);}).map(function(x){return x.rank;});
+    const olderRanks  = ser.filter(function(x){return olderSet.has(x.date)&&validRank(x.rank);}).map(function(x){return x.rank;});
+    const recentRankAvg = recentRanks.length ? recentRanks.reduce(function(a,b){return a+b;},0)/recentRanks.length : null;
+    const olderRankAvg  = olderRanks.length  ? olderRanks.reduce(function(a,b){return a+b;},0)/olderRanks.length  : null;
+    let rankTrend = null; // 양수=순위 개선(상승), 음수=악화(하락)
+    if(recentRankAvg!=null && olderRankAvg!=null){
+      rankTrend = +(olderRankAvg - recentRankAvg).toFixed(1);
+    }
+
+    // ── 기간 누적 가격 변화율 (첫 종가 → 마지막 종가)
+    const validCloses = ser.filter(function(x){return !safeN(x.close);});
+    let priceChg = null;
+    if(validCloses.length>=2){
+      const first = validCloses[0].close, last = validCloses[validCloses.length-1].close;
+      if(first>0) priceChg = +((last-first)/first*100).toFixed(1);
+    }
+
+    // ── 모멘텀 점수 (0~100): 출현율 + 평균순위 + 순위추세 + 자금유입 + 연속성
+    // 1) 출현율 (0~25)
+    const sRate = rate/100*25;
+    // 2) 평균순위 점수 (1위=만점, 10위=최저) (0~25)
+    const sRank = avgRank!=null ? (Math.max(0,(11-avgRank)/10))*25 : 0;
+    // 3) 순위 추세 (0~20): +3 이상 개선 만점, -3 이하 0
+    const sTrend = rankTrend!=null ? Math.max(0,Math.min(20,(rankTrend+3)/6*20)) : 10;
+    // 4) 자금 유입 (0~20): +50% 이상 만점, -50% 이하 0
+    const sInflow = inflowPct!=null ? Math.max(0,Math.min(20,(inflowPct+50)/100*20)) : 10;
+    // 5) 연속성 (0~10)
+    const sConsec = Math.min(10, consec/Math.max(totalDays,1)*10 + consec*1.2);
+    const momentum = Math.round(sRate+sRank+sTrend+sInflow+Math.min(sConsec,10));
+
+    // ── 자금흐름 상태 분류 (객관적 표현)
+    let flowState, flowCls;
+    if(inflowPct!=null && inflowPct>=30 && (rankTrend==null||rankTrend>=0)){ flowState='💰 자금몰림'; flowCls='fs-hot'; }
+    else if(inflowPct!=null && inflowPct>=10){ flowState='📈 유입가속'; flowCls='fs-up'; }
+    else if(inflowPct!=null && inflowPct<=-30){ flowState='📉 자금유출'; flowCls='fs-out'; }
+    else if(rate>=60 && (rankTrend==null||rankTrend>=-1)){ flowState='🔒 꾸준유지'; flowCls='fs-hold'; }
+    else { flowState='⚪ 관망권'; flowCls='fs-flat'; }
+
+    // ── 신규 진입: 기간 후반엔 등장, 전반엔 미등장 (새로 TOP10 진입)
+    const appearedRecent = ser.some(function(x){return recentSet.has(x.date);});
+    const appearedOlder  = ser.some(function(x){return olderSet.has(x.date);});
+    const isNew = appearedRecent && !appearedOlder && olderDates.length>0;
+    // ── 주목: 신규진입 + 자금급증(또는 순위급등)
+    const isHot = (isNew && (inflowPct==null||inflowPct>=0))
+               || (inflowPct!=null && inflowPct>=30 && (rankTrend!=null && rankTrend>=2));
+
+    return {...s, avgRank, bestRank, worstRank, avgAmt, avgChg, rate, consec,
+            inflowPct, rankTrend, priceChg, momentum, flowState, flowCls,
+            recentAmtAvg, olderAmtAvg, isNew, isHot};
+  });
+
+  // ── 정렬 적용
+  const sortFns = {
+    momentum: function(a,b){ return b.momentum-a.momentum || b.days-a.days; },
+    days:     function(a,b){ return b.days-a.days || (a.avgRank||99)-(b.avgRank||99); },
+    inflow:   function(a,b){ return (b.inflowPct==null?-999:b.inflowPct)-(a.inflowPct==null?-999:a.inflowPct); },
+    avgrank:  function(a,b){ return (a.avgRank||99)-(b.avgRank||99); },
+  };
+  stocks.sort(sortFns[TOP10_SORT]||sortFns.momentum);
+
+  // KPI
+  const totalDays = dates.length;
+  const uniqueStocks = stocks.length;
+
+  // 오늘의 주목: 모멘텀 1위
+  const topMomentum = stocks.length ? stocks.slice().sort(function(a,b){return b.momentum-a.momentum;})[0] : null;
+  // 자금 유입 1위
+  const topInflow = stocks.filter(function(s){return s.inflowPct!=null;}).sort(function(a,b){return b.inflowPct-a.inflowPct;})[0];
+
+  const sortLabels = {momentum:'모멘텀순', days:'빈도순', inflow:'자금유입순', avgrank:'평균순위순'};
+  function sortBtn(key){
+    return '<button class="sort-chip'+(TOP10_SORT===key?' on':'')+'" onclick="setTop10Sort(\''+key+'\')">'+sortLabels[key]+'</button>';
+  }
+
+  // 순위추세 화살표 HTML
+  function trendArrow(t){
+    if(t==null) return '<span style="color:var(--txt2)">–</span>';
+    if(t>=1) return '<span style="color:var(--red);font-weight:700">▲'+t.toFixed(1)+'</span>';
+    if(t<=-1) return '<span style="color:var(--blue);font-weight:700">▼'+Math.abs(t).toFixed(1)+'</span>';
+    return '<span style="color:var(--txt2)">보합</span>';
+  }
+  function inflowHtml(p){
+    if(p==null) return '<span style="color:var(--txt2)">–</span>';
+    const c = p>=30?'var(--red)':(p>=10?'var(--coral)':(p<=-30?'var(--blue)':'var(--txt2)'));
+    return '<span style="font-weight:700;color:'+c+'">'+(p>0?'+':'')+p+'%</span>';
+  }
+
+  // 주목 종목 (신규진입 또는 자금급증)
+  const hotStocks = stocks.filter(function(s){return s.isHot;})
+    .sort(function(a,b){return (b.inflowPct==null?-999:b.inflowPct)-(a.inflowPct==null?-999:a.inflowPct);});
+  const newCount = stocks.filter(function(s){return s.isNew;}).length;
 
   panel.innerHTML = ''
   + kpiRow([
-      {cls:'kpi-amt',num:fmtAmt(totalAmt),lbl:'총 거래대금'},
-      {cls:'kpi-up',num:bandUpN,lbl:'상승'},
-      {cls:'kpi-down',num:bandDownN,lbl:'하락'},
-      {cls:'kpi-teal',num:fmtAmt(top10Amt),lbl:'상위10위 대금'},
+      {cls:'kpi-up',   num:topMomentum?esc(topMomentum.name):'-', lbl:'🔥 최고 모멘텀'},
+      {cls:'kpi-coral',num:topInflow?esc(topInflow.name):'-',     lbl:'💰 자금유입 1위'},
+      {cls:'kpi-amt',  num:newCount,        lbl:'🆕 신규 진입'},
+      {cls:'kpi-teal', num:uniqueStocks,    lbl:'등장 종목수'},
     ])
   + '<div class="toolbar"><div class="f-row">'
-  +   '<span class="f-label">날짜</span>'+dateTripleSelHtml()
-  + '</div></div>'
-  + '<div class="band-grid">'
-  + bandData.map(function(band){
-      if(!band.stocks.length) return '';
-      return '<div class="band-card">'
-        +'<div class="band-title"><span style="width:10px;height:10px;border-radius:3px;background:'+band.col+';display:inline-block;flex-shrink:0"></span>'+esc(band.label)+' <span class="band-badge">'+band.stocks.length+'종목</span></div>'
-        +'<div class="bars">'
-        + band.stocks.map(function(s){
-            const w=Math.max((s.amt||0)/maxAmt*100,2);
-            return '<div class="bar-row" style="grid-template-columns:90px 1fr 40px 52px;cursor:pointer" onclick="goHistory(\''+esc(s.name)+'\')">'
-              +'<div class="bar-lbl" title="'+esc(s.name)+'">'+esc(s.name)+'</div>'
-              +'<div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+band.col+'"></div></div>'
-              +'<div class="bar-val">'+fmtRank(s.rank)+'</div>'
-              +'<div style="font-size:11.5px;font-weight:700;text-align:right" class="'+chgCls(s.chg)+'">'+fmtPct(s.chg)+'</div>'
+  +   '<span class="f-label">기간</span>'+top10PeriodSelHtml()
+  + '</div>'
+  +   '<div class="f-row" style="margin-top:9px">'
+  +     '<span class="f-label">정렬</span>'
+  +     sortBtn('momentum')+sortBtn('days')+sortBtn('inflow')+sortBtn('avgrank')
+  +   '</div>'
+  + '</div>'
+
+  // ── 🔥 주목 종목 (신규진입·자금급증) — 매매 타이밍 포착
+  + (hotStocks.length>0 ? (function(){
+      return '<div class="sc hot-sc">'
+        +'<div class="sc-title">🔥 주목 종목 <span class="sub">새로 진입했거나 자금이 급증한 종목</span></div>'
+        +'<div class="hot-grid">'
+        + hotStocks.slice(0,6).map(function(s){
+            const tag = s.isNew
+              ? '<span class="hot-tag hot-new">🆕 신규진입</span>'
+              : '<span class="hot-tag hot-surge">💰 자금급증</span>';
+            return '<div class="hot-card" onclick="goHistory(\''+esc(s.name)+'\')">'
+              +'<div class="hot-card-top">'+tag+'<span class="hot-rank">'+(s.avgRank!=null?s.avgRank.toFixed(1)+'위':'-')+'</span></div>'
+              +'<div class="hot-name">'+esc(s.name)+'</div>'
+              +'<div class="hot-metrics">'
+              +  '<span class="hot-metric"><span class="hot-metric-l">자금유입</span>'+inflowHtml(s.inflowPct)+'</span>'
+              +  '<span class="hot-metric"><span class="hot-metric-l">순위추세</span>'+trendArrow(s.rankTrend)+'</span>'
+              +'</div>'
             +'</div>';
           }).join('')
-        +'</div>'
-      +'</div>';
-    }).join('')
-  + '</div>';
+        +'</div></div>';
+    })() : '')
+
+  // ── ⭐ 모멘텀 1위 대표 카드 (중복 축소: 1종목만 크게)
+  + (topMomentum ? (function(){
+      const s = topMomentum;
+      const mc = s.momentum>=75?'var(--red)':(s.momentum>=55?'var(--coral)':'var(--sky600)');
+      return '<div class="sc">'
+        +'<div class="sc-title">⭐ 모멘텀 1위 <span class="sub">거래대금 집중도·순위추세·자금유입 종합</span></div>'
+        +'<div class="mom-card mom-card-lead" style="cursor:pointer" onclick="goHistory(\''+esc(s.name)+'\')">'
+          +'<div class="mom-lead-row">'
+          +  '<div class="mom-lead-left">'
+          +    '<div class="mom-head"><span class="mom-medal">🥇</span><span class="mom-name">'+esc(s.name)+'</span></div>'
+          +    '<div class="mom-tags"><span class="mom-tag '+s.flowCls+'">'+esc(s.flowState)+'</span></div>'
+          +  '</div>'
+          +  '<div class="mom-score" style="color:'+mc+'">'+s.momentum+'<span class="mom-score-u">점</span></div>'
+          +'</div>'
+          +'<div class="mom-stats">'
+          +  '<div class="mom-stat"><span class="mom-stat-l">평균순위</span><span class="mom-stat-v">'+(s.avgRank!=null?s.avgRank.toFixed(1)+'위':'-')+'</span></div>'
+          +  '<div class="mom-stat"><span class="mom-stat-l">순위추세</span><span class="mom-stat-v">'+trendArrow(s.rankTrend)+'</span></div>'
+          +  '<div class="mom-stat"><span class="mom-stat-l">자금유입</span><span class="mom-stat-v">'+inflowHtml(s.inflowPct)+'</span></div>'
+          +  '<div class="mom-stat"><span class="mom-stat-l">출현율</span><span class="mom-stat-v">'+s.rate+'%</span></div>'
+          +'</div>'
+        +'</div></div>';
+    })() : '')
+
+  // ── 출현 빈도 바 차트 (색상 = 빈도 기준)
+  + '<div class="sc">'
+  +   '<div class="sc-title">TOP 10 출현 빈도 <span class="sub">기간 내 10위 이내 등장 일수 순</span></div>'
+  +   '<div class="bars">'
+  +   stocks.slice().sort(function(a,b){return b.days-a.days;}).map(function(s){
+        const ratio = s.days/Math.max(totalDays,1);
+        const w = Math.max(ratio*100,2);
+        // 색상 = 출현빈도 기준 (높을수록 진한 sky)
+        const col = ratio>=0.8?'#0C447C':(ratio>=0.5?'#185FA5':(ratio>=0.3?'#378ADD':'#B5D4F4'));
+        const numCol = ratio>=0.5?'var(--sky800)':'var(--sky600)';
+        return '<div class="bar-row" style="cursor:pointer" onclick="goHistory(\''+esc(s.name)+'\')">'
+          +'<div class="bar-lbl" title="'+esc(s.name)+'">'+esc(s.name)+'</div>'
+          +'<div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+col+'"></div></div>'
+          +'<div class="bar-val" style="font-weight:700;color:'+numCol+'">'+s.days+'일</div>'
+        +'</div>';
+      }).join('')
+  +   '</div>'
+  + '</div>'
+
+  // ── 종목별 상세 테이블 (매매 분석용)
+  + '<div class="sc">'
+  +   '<div class="sc-title">종목별 매매 분석 <span class="sub">정렬: '+sortLabels[TOP10_SORT]+' · 행 클릭 시 이력 이동</span></div>'
+  +   '<div class="tbl-wrap"><table>'
+  +   '<thead><tr>'
+  +     '<th class="l" style="padding-left:6px">종목</th>'
+  +     '<th>모멘텀</th>'
+  +     '<th>자금흐름</th>'
+  +     '<th>평균순위</th>'
+  +     '<th>순위추세</th>'
+  +     '<th>자금유입</th>'
+  +     '<th>출현율</th>'
+  +     '<th>연속</th>'
+  +     '<th>평균거래대금</th>'
+  +     '<th>기간수익</th>'
+  +     '<th>최근등락</th>'
+  +   '</tr></thead>'
+  +   '<tbody>'
+  +   stocks.map(function(s){
+        const consecBdg = s.consec>=3
+          ? '<span class="bdg" style="background:var(--red50);color:var(--red);margin-left:5px;font-size:11px;padding:2px 7px">🔥'+s.consec+'</span>'
+          : s.consec>=2
+          ? '<span class="bdg" style="background:var(--amber50);color:var(--amber);margin-left:5px;font-size:11px;padding:2px 7px">'+s.consec+'</span>'
+          : '';
+        const rateBdg = s.rate>=80
+          ? '<span class="bdg" style="background:var(--teal50);color:var(--teal600)">'+s.rate+'%</span>'
+          : s.rate+'%';
+        const mc = s.momentum>=75?'var(--red)':(s.momentum>=55?'var(--coral)':(s.momentum>=40?'var(--sky600)':'var(--txt2)'));
+        const momBarW = Math.max(Math.min(s.momentum,100),0);
+        const priceChgHtml = s.priceChg==null ? '<span style="color:var(--txt2)">-</span>'
+          : '<span class="'+(s.priceChg>0?'t-up':(s.priceChg<0?'t-down':''))+'" style="font-weight:600">'+(s.priceChg>0?'+':'')+s.priceChg+'%</span>';
+        return '<tr>'
+          +'<td class="l t-name" style="padding-left:6px;cursor:pointer" onclick="goHistory(\''+esc(s.name)+'\')">'
+          +  esc(s.name)+'<span class="c">'+esc(s.code||'')+'</span>'+consecBdg
+          +'</td>'
+          +'<td style="min-width:72px;vertical-align:middle"><div class="mom-cell"><div class="mom-bar-wrap"><div class="mom-bar-fill" style="width:'+momBarW+'%;background:'+mc+'"></div></div><span class="mom-cell-num">'+s.momentum+'</span></div></td>'
+          +'<td><span class="fs-bdg '+s.flowCls+'">'+esc(s.flowState)+'</span></td>'
+          +'<td style="font-weight:600;color:var(--txt)">'+(s.avgRank!==null?s.avgRank.toFixed(1)+'위':'-')+'</td>'
+          +'<td>'+trendArrow(s.rankTrend)+'</td>'
+          +'<td>'+inflowHtml(s.inflowPct)+'</td>'
+          +'<td>'+rateBdg+'</td>'
+          +'<td style="font-weight:600">'+(s.consec>=2?'<span style="color:var(--coral)">'+s.consec+'일</span>':s.consec+'일')+'</td>'
+          +'<td class="t-amt">'+fmtAmt(s.avgAmt)+'</td>'
+          +'<td>'+priceChgHtml+'</td>'
+          +'<td class="'+chgCls(s.lastChg)+' t-chg">'+fmtPct(s.lastChg)+'</td>'
+        +'</tr>';
+      }).join('')
+  +   '</tbody></table></div>'
+  +   '<div class="legend-row">'
+  +     '<span class="legend-item"><b>모멘텀</b> 출현율·평균순위·순위추세·자금유입·연속성 종합 (0~100)</span>'
+  +     '<span class="legend-item"><b>순위추세</b> 기간 전반 대비 후반 평균순위 변화 (▲상승 ▼하락)</span>'
+  +     '<span class="legend-item"><b>자금유입</b> 기간 후반 평균거래대금 / 전반 대비 증감률</span>'
+  +     '<span class="legend-item"><b>기간수익</b> 첫 종가 → 마지막 종가 변화율</span>'
+  +   '</div>'
+  + '</div>'
+
+  // ── 날짜별 TOP 10 히트맵 (최근 20일 이하만 표시)
+  + (function(){
+      const viewDates = dates.slice(0,20);
+      if(viewDates.length < 2) return '';
+      const allNames = stocks.map(function(s){return s.name;});
+      return '<div class="sc">'
+        +'<div class="sc-title">날짜별 출현 현황 <span class="sub">최근 '+viewDates.length+'일 · 셀=등락률</span></div>'
+        +'<div style="overflow-x:auto">'
+        +'<table style="min-width:max-content">'
+        +'<thead><tr>'
+        +  '<th class="l" style="padding-left:6px;min-width:100px;font-size:14px">종목</th>'
+        +  viewDates.map(function(d){
+             return '<th style="font-size:13px;min-width:52px;text-align:center;white-space:nowrap">'+fmtDateShort(d)+'</th>';
+           }).join('')
+        +'</tr></thead>'
+        +'<tbody>'
+        + allNames.map(function(name){
+            return '<tr>'
+              +'<td class="l t-name" style="padding-left:6px;font-size:14px;cursor:pointer" onclick="goHistory(\''+esc(name)+'\')">'+esc(name)+'</td>'
+              + viewDates.map(function(d){
+                  const r = rows.find(function(x){return x.date===d&&x.name===name;});
+                  if(!r) return '<td style="background:var(--gray50);text-align:center;font-size:13px;color:var(--txt3)">-</td>';
+                  const bg = safeN(r.chg)?'#E0EAF5':(r.chg>0?'rgba(216,48,47,.13)':(r.chg<0?'rgba(37,99,201,.13)':'#f1efe8'));
+                  const cl = chgCls(r.chg);
+                  return '<td class="'+cl+'" style="background:'+bg+';text-align:center;font-size:13px;font-weight:700;padding:10px 6px" title="'+fmtRank(r.rank)+' / '+fmtPct(r.chg)+'">'
+                    +fmtPct(r.chg)
+                  +'</td>';
+                }).join('')
+            +'</tr>';
+          }).join('')
+        +'</tbody></table>'
+        +'</div></div>';
+    })();
 }
 
 // ════════════════════════════════════════════════
@@ -1089,7 +1497,7 @@ function renderCurrent(){
   if(curTab==='daily') renderDaily();
   else if(curTab==='change') renderChange();
   else if(curTab==='entry') renderEntry();
-  else if(curTab==='band') renderBand();
+  else if(curTab==='top10') renderTop10();
   else if(curTab==='history') renderHistory();
 }
 
