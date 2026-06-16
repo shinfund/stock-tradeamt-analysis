@@ -367,7 +367,7 @@ let CFG = (()=>{
 let VOLUMES = [];
 let IS_DEMO = false;
 let curTab = 'top10';
-let PERIOD = 50;       // 기간 (0=전체)
+let PERIOD = 20;       // 기간 (0=전체)
 let SEL_DATE = '';     // 일별/순위변동 탭 선택 날짜
 let ENTRANT_TOP_N = 10; // 상위권진입 기준 순위
 let HIST_STOCK = '';   // 종목이력 선택 종목
@@ -971,7 +971,7 @@ function setEntrantN(v){ ENTRANT_TOP_N=Number(v); renderEntry(); }
 // ════════════════════════════════════════════════
 // TAB 4 — TOP 10 분석
 // ════════════════════════════════════════════════
-let TOP10_PERIOD = 50; // 독립 기간 (1/5/10/20/50/100/200/0=전체)
+let TOP10_PERIOD = 20; // 독립 기간 (1/5/10/20/50/100/200/0=전체)
 let TOP10_SORT = 'momentum'; // 정렬: momentum/days/inflow/avgrank
 
 const TOP10_PERIOD_OPTS = [
