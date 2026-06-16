@@ -122,11 +122,6 @@ tbody tr:hover{background:var(--sky50);}
 /* ── BADGES ── */
 .bdg{font-size:12px;font-weight:700;padding:3px 9px;border-radius:11px;letter-spacing:-.01em;white-space:nowrap;}
 
-/* ── TOP10 정렬 칩 ── */
-.sort-chip{font-size:13.5px;font-weight:700;font-family:inherit;padding:7px 15px;border-radius:16px;border:1.5px solid var(--border);background:var(--card);color:var(--txt2);cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
-.sort-chip:hover{border-color:var(--sky100);color:var(--sky600);}
-.sort-chip.on{background:var(--sky);border-color:var(--sky);color:#fff;}
-
 /* ── 모멘텀 카드 ── */
 .mom-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r12);padding:14px;transition:.18s;}
 .mom-card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px);}
@@ -971,8 +966,14 @@ let TOP10_PERIOD = 50; // 독립 기간 (1/5/10/20/50/100/200/0=전체)
 let TOP10_SORT = 'momentum'; // 정렬: momentum/days/inflow/avgrank
 
 const TOP10_PERIOD_OPTS = [
-  {v:1,l:'1일'},{v:5,l:'5일'},{v:10,l:'10일'},{v:20,l:'20일'},
-  {v:50,l:'50일'},{v:100,l:'100일'},{v:200,l:'200일'},{v:0,l:'전체'}
+  {v:1,  l:'1일 · 당일 급등 포착'},
+  {v:5,  l:'5일 · 단기 모멘텀'},
+  {v:10, l:'10일 · 단기 수급'},
+  {v:20, l:'20일 · 스윙 기준'},
+  {v:50, l:'50일 · 중기 추세 ★'},
+  {v:100,l:'100일 · 섹터 흐름'},
+  {v:200,l:'200일 · 장기 수급'},
+  {v:0,  l:'전체 · 전체 이력'}
 ];
 
 function setTop10Period(v){
@@ -1187,10 +1188,6 @@ function renderTop10(){
   const topInflow = stocks.filter(function(s){return s.inflowPct!=null;}).sort(function(a,b){return b.inflowPct-a.inflowPct;})[0];
 
   const sortLabels = {momentum:'모멘텀순', days:'빈도순', inflow:'자금유입순', avgrank:'평균순위순'};
-  function sortBtn(key){
-    return '<button class="sort-chip'+(TOP10_SORT===key?' on':'')+'" onclick="setTop10Sort(\''+key+'\')">'+sortLabels[key]+'</button>';
-  }
-
   // 순위추세 화살표 HTML
   function trendArrow(t){
     if(t==null) return '<span style="color:var(--txt2)">–</span>';
@@ -1218,12 +1215,13 @@ function renderTop10(){
     ])
   + '<div class="toolbar"><div class="f-row">'
   +   '<span class="f-label">기간</span>'+top10PeriodSelHtml()
-  + '</div>'
-  +   '<div class="f-row" style="margin-top:9px">'
-  +     '<span class="f-label">정렬</span>'
-  +     sortBtn('momentum')+sortBtn('days')+sortBtn('inflow')+sortBtn('avgrank')
-  +   '</div>'
-  + '</div>'
+  +   '<span class="f-label">정렬</span>'
+  +   '<select class="sel period-sel" onchange="setTop10Sort(this.value)" aria-label="정렬 기준">'
+  +     Object.keys(sortLabels).map(function(k){
+          return '<option value="'+k+'"'+(TOP10_SORT===k?' selected':'')+'>'+sortLabels[k]+'</option>';
+        }).join('')
+  +   '</select>'
+  + '</div></div>'
 
   // ── 🔥 주목 종목 (신규진입·자금급증) — 매매 타이밍 포착
   + (hotStocks.length>0 ? (function(){
