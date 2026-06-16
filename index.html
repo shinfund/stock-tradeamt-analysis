@@ -58,7 +58,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;font-size:15px;line-heigh
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* ── KPI ── */
-.kpi-row{display:flex;gap:9px;margin-bottom:14px;padding-top:6px;flex-wrap:wrap;}
+.kpi-row{display:flex;gap:9px;margin-bottom:14px;padding-top:10px;flex-wrap:wrap;}
 .kpi-card{flex:1;min-width:76px;background:var(--card);border:1px solid var(--border);border-radius:var(--r12);padding:11px 12px;text-align:center;box-shadow:var(--shadow);}
 .kpi-card .num{font-size:16px;font-weight:600;line-height:1.05;}
 .kpi-card .lbl{font-size:12.5px;margin-top:4px;font-weight:700;color:var(--txt2);}
@@ -334,8 +334,8 @@ tbody tr:hover{background:var(--sky50);}
       </div>
     </div>
     <div class="top-nav" id="nav" role="tablist">
-      <button class="tab-btn on" data-tab="daily" role="tab">일별</button>
-      <button class="tab-btn" data-tab="top10" role="tab">TOP 10</button>
+      <button class="tab-btn on" data-tab="top10" role="tab">TOP 10</button>
+      <button class="tab-btn" data-tab="daily" role="tab">일별</button>
       <button class="tab-btn" data-tab="change" role="tab">순위변동</button>
       <button class="tab-btn" data-tab="entry" role="tab">상위진입</button>
       <button class="tab-btn" data-tab="history" role="tab">종목이력</button>
@@ -343,8 +343,8 @@ tbody tr:hover{background:var(--sky50);}
   </div>
 
   <div class="main" id="main">
-    <div class="panel on" id="panel-daily"></div>
-    <div class="panel" id="panel-top10"></div>
+    <div class="panel on" id="panel-top10"></div>
+    <div class="panel" id="panel-daily"></div>
     <div class="panel" id="panel-change"></div>
     <div class="panel" id="panel-entry"></div>
     <div class="panel" id="panel-history"></div>
@@ -370,7 +370,7 @@ let CFG = (()=>{
 // ── 상태 ──
 let VOLUMES = [];
 let IS_DEMO = false;
-let curTab = 'daily';
+let curTab = 'top10';
 let PERIOD = 5;        // 기간 (0=전체)
 let SEL_DATE = '';     // 일별/순위변동 탭 선택 날짜
 let ENTRANT_TOP_N = 10; // 상위권진입 기준 순위
@@ -967,12 +967,12 @@ function setEntrantN(v){ ENTRANT_TOP_N=Number(v); renderEntry(); }
 // ════════════════════════════════════════════════
 // TAB 4 — TOP 10 분석
 // ════════════════════════════════════════════════
-let TOP10_PERIOD = 5; // 독립 기간 (1/5/10/20/60/120/240/0=전체)
+let TOP10_PERIOD = 50; // 독립 기간 (1/5/10/20/50/100/200/0=전체)
 let TOP10_SORT = 'momentum'; // 정렬: momentum/days/inflow/avgrank
 
 const TOP10_PERIOD_OPTS = [
   {v:1,l:'1일'},{v:5,l:'5일'},{v:10,l:'10일'},{v:20,l:'20일'},
-  {v:60,l:'60일'},{v:120,l:'120일'},{v:240,l:'240일'},{v:0,l:'전체'}
+  {v:50,l:'50일'},{v:100,l:'100일'},{v:200,l:'200일'},{v:0,l:'전체'}
 ];
 
 function setTop10Period(v){
