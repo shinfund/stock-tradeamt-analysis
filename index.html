@@ -1420,9 +1420,9 @@ function renderHistory(){
       {cls:'kpi-coral',num:worstRank!=='-'?worstRank+'위':'-',       lbl:'최저순위'},
       {cls:'kpi-amt',  num:fmtAmt(avgAmt),                          lbl:'평균대금'},
     ])
-  + '<div class="toolbar"><div class="f-row">'
+  + '<div class="toolbar"><div class="f-row" style="flex-wrap:nowrap">'
   +   '<span class="f-label">기간</span>'+periodSelHtml('hisPeriod','setPeriod(this.value)')
-  +   '<span class="f-label">종목</span><select class="sel" onchange="setHistStock(this.value)">'+stockOpts+'</select>'
+  +   '<span class="f-label">종목</span><select class="sel" style="flex:1;min-width:0" onchange="setHistStock(this.value)">'+stockOpts+'</select>'
   + '</div></div>'
   + (histRows.length===0
     ? '<div class="empty"><div class="ico">📭</div><div class="msg">해당 기간 데이터 없음</div></div>'
