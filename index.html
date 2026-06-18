@@ -552,9 +552,9 @@ let HIST_DAY   = '';     // 종목이력 날짜 필터 — 일
 // ════════════════════════════════════════════════
 // Notion fetch
 // ════════════════════════════════════════════════
-async function fetchNotion(dbId, body){
+async function fetchNotion(dbId, body, timeout){
   const ctrl = new AbortController();
-  const timer = setTimeout(()=>ctrl.abort(), 6000);
+  const timer = setTimeout(()=>ctrl.abort(), timeout||15000);
   try{
     const res = await fetch(CFG.workerUrl+'/v1/databases/'+dbId+'/query', {
       method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body||{}), signal:ctrl.signal
@@ -571,7 +571,15 @@ async function fetchAllPages(dbId, sorts){
   const data = await fetchNotion(dbId, body);
   let pages = data.results||[], cursor=data.next_cursor, hasMore=data.has_more, cnt=0;
   while(cursor && hasMore && ++cnt<100){
-    const d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
+    const lab=document.getElementById('syncLabel');
+    if(lab) lab.textContent='로딩… '+pages.length+'건';
+    let d2;
+    try{
+      d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
+    }catch(e){
+      await new Promise(r=>setTimeout(r,1000));
+      d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
+    }
     pages = pages.concat(d2.results||[]); cursor=d2.next_cursor; hasMore=d2.has_more;
   }
   return pages;
