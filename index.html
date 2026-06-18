@@ -919,7 +919,7 @@ function renderEntry(){
   const {prevDate, rows:entrants} = calcEntrants(SEL_DATE, ENTRANT_TOP_N);
   const summary = calcPeriodSummary(ENTRY_PERIOD, ENTRANT_TOP_N);
   const totalEntN = summary.reduce((s,d)=>s+d.entN,0);
-  const topNOpts = [{v:10,l:'10위'},{v:20,l:'20위'},{v:30,l:'30위'},{v:0,l:'전체'}]
+  const topNOpts = [{v:5,l:'5위'},{v:10,l:'10위'},{v:20,l:'20위'},{v:30,l:'30위'},{v:0,l:'전체'}]
     .map(o=>'<option value="'+o.v+'"'+(ENTRANT_TOP_N===o.v?' selected':'')+'>'+o.l+'</option>').join('');
   const maxBarN = Math.max(...summary.map(d=>d.entN+d.exitN),1);
 
@@ -1008,7 +1008,8 @@ function setTop10Sort(v){
   renderTop10();
 }
 function setTop10Rank(v){
-  if(v==='10')       TOP10_RANK = {min:1,  max:10};
+  if(v==='5')        TOP10_RANK = {min:1,  max:5};
+  else if(v==='10')  TOP10_RANK = {min:1,  max:10};
   else if(v==='20')  TOP10_RANK = {min:11, max:20};
   else if(v==='30')  TOP10_RANK = {min:21, max:30};
   else               TOP10_RANK = {min:1,  max:9999};
@@ -1024,8 +1025,8 @@ function top10PeriodSelHtml(){
 }
 
 function top10RankSelHtml(){
-  const opts = [{v:'10',l:'10위'},{v:'20',l:'11~20위'},{v:'30',l:'21~30위'},{v:'0',l:'전체'}];
-  const cur = TOP10_RANK.max<=10?'10':TOP10_RANK.max<=20?'20':TOP10_RANK.max<=30?'30':'0';
+  const opts = [{v:'5',l:'5위'},{v:'10',l:'10위'},{v:'20',l:'11~20위'},{v:'30',l:'21~30위'},{v:'0',l:'전체'}];
+  const cur = TOP10_RANK.max<=5?'5':TOP10_RANK.max<=10?'10':TOP10_RANK.max<=20?'20':TOP10_RANK.max<=30?'30':'0';
   return '<select class="sel period-sel" onchange="setTop10Rank(this.value)" aria-label="순위 기준">'
     + opts.map(function(o){
         return '<option value="'+o.v+'"'+(cur===o.v?' selected':'')+'>'+o.l+'</option>';
