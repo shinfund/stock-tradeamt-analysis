@@ -368,10 +368,10 @@ let VOLUMES = [];
 let IS_DEMO = false;
 let curTab = 'top10';
 let PERIOD = 20;         // 일별·순위변동 탭 기간
-let ENTRY_PERIOD = 5;    // 상위진입 탭 기간
+let ENTRY_PERIOD = 20;   // 상위진입 탭 기간
 let HIST_PERIOD = 20;    // 종목이력 탭 기간
 let SEL_DATE = '';       // 일별/순위변동 탭 선택 날짜
-let ENTRANT_TOP_N = 10;  // 상위권진입 기준 순위
+let ENTRANT_TOP_N = 20;  // 상위권진입 기준 순위
 let HIST_STOCK = '';     // 종목이력 선택 종목
 let HIST_YEAR  = '';     // 종목이력 날짜 필터 — 년
 let HIST_MONTH = '';     // 종목이력 날짜 필터 — 월
@@ -622,7 +622,7 @@ function parseVolumes(pages){
       vol:numOr(getVal(pr['거래량'])),
       amt:numOr(getVal(pr['거래대금'])),
     };
-  }).filter(r=>r.name&&r.date);
+  }).filter(r=>r.name&&r.date&&(r.rank==null||r.rank<=20));
 }
 
 // ════════════════════════════════════════════════
@@ -794,7 +794,7 @@ function renderDaily(){
         +'</div>';
       }).join('')
   + '</div></div>'
-  + '<div class="sc"><div class="sc-title">전체 순위</div>'
+  + '<div class="sc"><div class="sc-title">상위 20위</div>'
   +   '<div class="tbl-wrap"><table>'
   +     '<thead><tr><th class="l" style="padding-left:6px">순위</th><th class="l">종목</th><th>종가</th><th>등락률</th><th>거래량</th><th>거래대금</th></tr></thead>'
   +     '<tbody>'
@@ -939,7 +939,7 @@ function renderEntry(){
   const {prevDate, rows:entrants} = calcEntrants(SEL_DATE, ENTRANT_TOP_N);
   const summary = calcPeriodSummary(ENTRY_PERIOD, ENTRANT_TOP_N);
   const totalEntN = summary.reduce((s,d)=>s+d.entN,0);
-  const topNOpts = [{v:5,l:'5위'},{v:10,l:'10위'},{v:20,l:'20위'},{v:0,l:'전체'}]
+  const topNOpts = [{v:5,l:'5위'},{v:10,l:'10위'},{v:20,l:'20위'}]
     .map(o=>'<option value="'+o.v+'"'+(ENTRANT_TOP_N===o.v?' selected':'')+'>'+o.l+'</option>').join('');
   const maxBarN = Math.max(...summary.map(d=>d.entN+d.exitN),1);
 
@@ -951,7 +951,7 @@ function renderEntry(){
   + kpiRow([
       {cls:'kpi-coral',num:entrants.length,lbl:'신규진입'},
       {cls:'kpi-down',num:exitN,lbl:'당일 이탈'},
-      {cls:'kpi-teal',num:ENTRANT_TOP_N||'전체',lbl:'기준순위'},
+      {cls:'kpi-teal',num:ENTRANT_TOP_N+'위',lbl:'기준순위'},
       {cls:'kpi-tot',num:totalEntN,lbl:'총진입'},
     ])
   + '<div class="toolbar"><div class="f-row">'
@@ -960,7 +960,7 @@ function renderEntry(){
   + '</div></div>'
 
   // 당일 신규 진입 테이블
-  + '<div class="sc"><div class="sc-title">상위 '+(ENTRANT_TOP_N||'전체')+'위 신규 진입</div>'
+  + '<div class="sc"><div class="sc-title">상위 '+ENTRANT_TOP_N+'위 신규 진입</div>'
   + (entrants.length===0
     ? '<div class="empty" style="padding:20px 0"><div class="msg">해당일 신규 진입 없음</div><div class="sub">다른 날짜를 선택하거나 기준 순위를 높여보세요</div></div>'
     : '<div class="tbl-wrap"><table>'
@@ -999,13 +999,13 @@ function renderEntry(){
     }).join('')
   + '</div></div>';
 }
-function setEntrantN(v){ ENTRANT_TOP_N=Number(v); renderEntry(); }
+function setEntrantN(v){ ENTRANT_TOP_N=Number(v)||20; renderEntry(); }
 
 // ════════════════════════════════════════════════
 // TAB 4 — TOP 10 분석
 // ════════════════════════════════════════════════
-let TOP10_PERIOD = 5;  // 독립 기간 (1/5/10/20/50/100/200/0=전체)
-let TOP10_RANK = {min:1, max:10};  // 순위 범위 기준
+let TOP10_PERIOD = 20; // 독립 기간 (1/5/10/20/50/100/200/0=전체)
+let TOP10_RANK = {min:1, max:20};  // 순위 범위 기준
 let TOP10_SORT = 'momentum'; // 정렬: momentum/days/inflow/avgrank
 
 const TOP10_PERIOD_OPTS = [
@@ -1030,8 +1030,7 @@ function setTop10Sort(v){
 function setTop10Rank(v){
   if(v==='5')       TOP10_RANK = {min:1, max:5};
   else if(v==='10') TOP10_RANK = {min:1, max:10};
-  else if(v==='20') TOP10_RANK = {min:1, max:20};
-  else              TOP10_RANK = {min:1, max:9999};
+  else              TOP10_RANK = {min:1, max:20};
   renderTop10();
 }
 
@@ -1044,8 +1043,8 @@ function top10PeriodSelHtml(){
 }
 
 function top10RankSelHtml(){
-  const opts = [{v:'5',l:'5위'},{v:'10',l:'10위'},{v:'20',l:'20위'},{v:'0',l:'전체'}];
-  const cur = TOP10_RANK.max<=5?'5':TOP10_RANK.max<=10?'10':TOP10_RANK.max<=20?'20':'0';
+  const opts = [{v:'5',l:'5위'},{v:'10',l:'10위'},{v:'20',l:'20위'}];
+  const cur = TOP10_RANK.max<=5?'5':TOP10_RANK.max<=10?'10':'20';
   return '<select class="sel period-sel" onchange="setTop10Rank(this.value)" aria-label="순위 기준">'
     + opts.map(function(o){
         return '<option value="'+o.v+'"'+(cur===o.v?' selected':'')+'>'+o.l+'</option>';
@@ -1330,7 +1329,7 @@ function renderTop10(){
 
   // ── 출현 빈도 바 차트 (색상 = 빈도 기준)
   + '<div class="sc">'
-  +   '<div class="sc-title">출현 빈도 <span class="sub">기간 내 '+(TOP10_RANK.max>=9999?'전체':(TOP10_RANK.min===1?TOP10_RANK.max+'위 이내':TOP10_RANK.min+'~'+TOP10_RANK.max+'위'))+' 등장 일수 순</span></div>'
+  +   '<div class="sc-title">출현 빈도 <span class="sub">기간 내 '+(TOP10_RANK.min===1?TOP10_RANK.max+'위 이내':TOP10_RANK.min+'~'+TOP10_RANK.max+'위')+' 등장 일수 순</span></div>'
   +   '<div class="bars">'
   +   stocks.slice().sort(function(a,b){return b.days-a.days;}).map(function(s){
         const ratio = Math.min(s.days/Math.max(totalDays,1), 1);
