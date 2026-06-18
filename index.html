@@ -569,19 +569,31 @@ async function fetchAllPages(dbId, sorts){
   const body = {page_size:100};
   if(sorts) body.sorts = sorts;
   const data = await fetchNotion(dbId, body);
-  let pages = data.results||[], cursor=data.next_cursor, hasMore=data.has_more, cnt=0;
-  while(cursor && hasMore && ++cnt<100){
+  // Worker가 응답을 중첩 래핑하는 경우 대응
+  function unwrap(d){ return (d && d.results) ? d : (d && d.data && d.data.results) ? d.data : {}; }
+  const first = unwrap(data);
+  let pages = first.results||[], cursor=first.next_cursor||null, hasMore=first.has_more||false, cnt=0;
+  console.log('[fetch] p0 results='+pages.length+' has_more='+hasMore+' cursor='+(cursor?cursor.slice(0,8):'null'));
+  while(cursor && hasMore && ++cnt<200){
     const lab=document.getElementById('syncLabel');
-    if(lab) lab.textContent='로딩… '+pages.length+'건';
+    if(lab) lab.textContent='로딩… '+pages.length+'건 ('+cnt+'p)';
     let d2;
     try{
       d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
     }catch(e){
-      await new Promise(r=>setTimeout(r,1000));
+      console.warn('[fetch] p'+cnt+' 실패 재시도:', e.message);
+      await new Promise(r=>setTimeout(r,1500));
       d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
     }
-    pages = pages.concat(d2.results||[]); cursor=d2.next_cursor; hasMore=d2.has_more;
+    const page = unwrap(d2);
+    const got = page.results||[];
+    pages = pages.concat(got);
+    cursor  = page.next_cursor||null;
+    hasMore = page.has_more||false;
+    console.log('[fetch] p'+cnt+' got='+got.length+' total='+pages.length+' has_more='+hasMore);
+    if(!got.length) break;
   }
+  console.log('[fetch] 완료 total='+pages.length+' pages='+cnt);
   return pages;
 }
 function getVal(p){
@@ -927,7 +939,7 @@ function renderEntry(){
   const {prevDate, rows:entrants} = calcEntrants(SEL_DATE, ENTRANT_TOP_N);
   const summary = calcPeriodSummary(ENTRY_PERIOD, ENTRANT_TOP_N);
   const totalEntN = summary.reduce((s,d)=>s+d.entN,0);
-  const topNOpts = [{v:5,l:'5위'},{v:10,l:'10위'},{v:20,l:'20위'},{v:30,l:'30위'},{v:0,l:'전체'}]
+  const topNOpts = [{v:5,l:'5위'},{v:10,l:'10위'},{v:20,l:'20위'},{v:0,l:'전체'}]
     .map(o=>'<option value="'+o.v+'"'+(ENTRANT_TOP_N===o.v?' selected':'')+'>'+o.l+'</option>').join('');
   const maxBarN = Math.max(...summary.map(d=>d.entN+d.exitN),1);
 
@@ -1016,12 +1028,10 @@ function setTop10Sort(v){
   renderTop10();
 }
 function setTop10Rank(v){
-  if(v==='5')        TOP10_RANK = {min:1,  max:5};
-  else if(v==='6_10')TOP10_RANK = {min:6,  max:10};
-  else if(v==='10')  TOP10_RANK = {min:1,  max:10};
-  else if(v==='20')  TOP10_RANK = {min:11, max:20};
-  else if(v==='30')  TOP10_RANK = {min:21, max:30};
-  else               TOP10_RANK = {min:1,  max:9999};
+  if(v==='5')       TOP10_RANK = {min:1, max:5};
+  else if(v==='10') TOP10_RANK = {min:1, max:10};
+  else if(v==='20') TOP10_RANK = {min:1, max:20};
+  else              TOP10_RANK = {min:1, max:9999};
   renderTop10();
 }
 
@@ -1034,8 +1044,8 @@ function top10PeriodSelHtml(){
 }
 
 function top10RankSelHtml(){
-  const opts = [{v:'5',l:'5위'},{v:'6_10',l:'6~10위'},{v:'10',l:'10위'},{v:'20',l:'11~20위'},{v:'30',l:'21~30위'},{v:'0',l:'전체'}];
-  const cur = TOP10_RANK.max<=5?'5':(TOP10_RANK.min===6&&TOP10_RANK.max<=10)?'6_10':TOP10_RANK.max<=10?'10':TOP10_RANK.max<=20?'20':TOP10_RANK.max<=30?'30':'0';
+  const opts = [{v:'5',l:'5위'},{v:'10',l:'10위'},{v:'20',l:'20위'},{v:'0',l:'전체'}];
+  const cur = TOP10_RANK.max<=5?'5':TOP10_RANK.max<=10?'10':TOP10_RANK.max<=20?'20':'0';
   return '<select class="sel period-sel" onchange="setTop10Rank(this.value)" aria-label="순위 기준">'
     + opts.map(function(o){
         return '<option value="'+o.v+'"'+(cur===o.v?' selected':'')+'>'+o.l+'</option>';
