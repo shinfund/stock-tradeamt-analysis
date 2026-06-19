@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>주식거래대금분석</title>
-<link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"></noscript>
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css"></noscript>
 <style>
 :root{
   --sky:#378ADD;--sky50:#E6F1FB;--sky100:#B5D4F4;--sky600:#185FA5;--sky800:#0C447C;
@@ -296,6 +296,10 @@ tbody tr:hover{background:var(--sky50);}
         <input id="cfgVolumeDbId" class="modal-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
         <div class="modal-hint">거래대금상위DB · 저장값은 XX로 마스킹 표시</div>
       </div>
+      <label style="font-size:12px;color:var(--txt2);display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer">
+        <input type="checkbox" id="cfgSessionOnly" style="width:14px;height:14px">
+        이 세션만 저장 (공용 기기 권장)
+      </label>
       <div class="modal-btns">
         <button class="modal-cancel" onclick="closeCfgModal()">취소</button>
         <button class="modal-save" onclick="saveCfg()">저장 후 불러오기</button>
@@ -330,11 +334,11 @@ tbody tr:hover{background:var(--sky50);}
       </div>
     </div>
     <div class="top-nav" id="nav" role="tablist">
-      <button class="tab-btn on" data-tab="top10" role="tab">순위별</button>
-      <button class="tab-btn" data-tab="daily" role="tab">일별</button>
-      <button class="tab-btn" data-tab="change" role="tab">순위변동</button>
-      <button class="tab-btn" data-tab="entry" role="tab">상위진입</button>
-      <button class="tab-btn" data-tab="history" role="tab">종목이력</button>
+      <button class="tab-btn on" data-tab="top10" role="tab" aria-selected="true">순위별</button>
+      <button class="tab-btn" data-tab="daily" role="tab" aria-selected="false">일별</button>
+      <button class="tab-btn" data-tab="change" role="tab" aria-selected="false">순위변동</button>
+      <button class="tab-btn" data-tab="entry" role="tab" aria-selected="false">상위진입</button>
+      <button class="tab-btn" data-tab="history" role="tab" aria-selected="false">종목이력</button>
     </div>
   </div>
 
@@ -351,14 +355,14 @@ tbody tr:hover{background:var(--sky50);}
 // ════════════════════════════════════════════════
 // 설정
 // ════════════════════════════════════════════════
-const DEFAULT_WORKER = 'https://notion-proxy.shinfund.workers.dev';
-const DEF_VOLUME_DB  = '36159c8c-9c0a-80fd-a656-daeb46ec25d5';
+const DEFAULT_WORKER = '';
+const DEF_VOLUME_DB  = '';
 
 let CFG = (()=>{
   try{
     return {
-      workerUrl: localStorage.getItem('vr_workerUrl') || DEFAULT_WORKER,
-      volumeDbId: localStorage.getItem('vr_volumeDbId') || DEF_VOLUME_DB,
+      workerUrl: sessionStorage.getItem('vr_workerUrl') || localStorage.getItem('vr_workerUrl') || DEFAULT_WORKER,
+      volumeDbId: sessionStorage.getItem('vr_volumeDbId') || localStorage.getItem('vr_volumeDbId') || DEF_VOLUME_DB,
     };
   }catch(e){ return {workerUrl:DEFAULT_WORKER, volumeDbId:DEF_VOLUME_DB}; }
 })();
@@ -376,6 +380,8 @@ let HIST_STOCK = '';     // 종목이력 선택 종목
 let HIST_YEAR  = '';     // 종목이력 날짜 필터 — 년
 let HIST_MONTH = '';     // 종목이력 날짜 필터 — 월
 let HIST_DAY   = '';     // 종목이력 날짜 필터 — 일
+
+const MAX_HOT_STOCKS = 6;
 
 // ════════════════════════════════════════════════
 // 데모 데이터
@@ -562,7 +568,7 @@ async function fetchNotion(dbId, body, timeout){
     if(!res.ok) throw new Error('HTTP '+res.status);
     const ct = res.headers.get('content-type')||'';
     if(!ct.includes('application/json')) throw new Error('Worker URL 오류');
-    return res.json();
+    return await res.json();
   }finally{ clearTimeout(timer); }
 }
 async function fetchAllPages(dbId, sorts){
@@ -573,7 +579,6 @@ async function fetchAllPages(dbId, sorts){
   function unwrap(d){ return (d && d.results) ? d : (d && d.data && d.data.results) ? d.data : {}; }
   const first = unwrap(data);
   let pages = first.results||[], cursor=first.next_cursor||null, hasMore=first.has_more||false, cnt=0;
-  console.log('[fetch] p0 results='+pages.length+' has_more='+hasMore+' cursor='+(cursor?cursor.slice(0,8):'null'));
   while(cursor && hasMore && ++cnt<200){
     const lab=document.getElementById('syncLabel');
     if(lab) lab.textContent='로딩… '+pages.length+'건 ('+cnt+'p)';
@@ -581,19 +586,21 @@ async function fetchAllPages(dbId, sorts){
     try{
       d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
     }catch(e){
-      console.warn('[fetch] p'+cnt+' 실패 재시도:', e.message);
       await new Promise(r=>setTimeout(r,1500));
-      d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
+      // 재시도 실패 시 수집된 데이터 반환
+      try{
+        d2 = await fetchNotion(dbId, {...body, start_cursor:cursor});
+      }catch(e2){
+        break; // 부분 데이터라도 반환
+      }
     }
     const page = unwrap(d2);
     const got = page.results||[];
     pages = pages.concat(got);
     cursor  = page.next_cursor||null;
     hasMore = page.has_more||false;
-    console.log('[fetch] p'+cnt+' got='+got.length+' total='+pages.length+' has_more='+hasMore);
     if(!got.length) break;
   }
-  console.log('[fetch] 완료 total='+pages.length+' pages='+cnt);
   return pages;
 }
 function getVal(p){
@@ -622,7 +629,7 @@ function parseVolumes(pages){
       vol:numOr(getVal(pr['거래량'])),
       amt:numOr(getVal(pr['거래대금'])),
     };
-  }).filter(r=>r.name&&r.date&&(r.rank==null||r.rank<=20));
+  }).filter(r=>r.name&&r.date&&(r.rank!=null&&r.rank<=20));
 }
 
 // ════════════════════════════════════════════════
@@ -670,11 +677,6 @@ function getPeriodDates(period){
 function rowsInPeriod(period){
   const set = new Set(getPeriodDates(period));
   return VOLUMES.filter(r=>set.has(r.date));
-}
-function periodSelHtml(id, onChange){
-  return '<select class="sel period-sel" id="'+id+'" onchange="'+onChange+'" aria-label="기간 선택">'
-    + PERIOD_OPTS.map(o=>'<option value="'+o.v+'"'+(PERIOD===o.v?' selected':'')+'>'+o.l+'</option>').join('')
-    + '</select>';
 }
 function periodSelHtml(id, onChange, curVal){
   const v = (curVal !== undefined) ? curVal : PERIOD;
@@ -794,7 +796,7 @@ function renderDaily(){
         +'</div>';
       }).join('')
   + '</div></div>'
-  + '<div class="sc"><div class="sc-title">상위 20위</div>'
+  + '<div class="sc"><div class="sc-title">상위 '+rows.length+'위</div>'
   +   '<div class="tbl-wrap"><table>'
   +     '<thead><tr><th class="l" style="padding-left:6px">순위</th><th class="l">종목</th><th>종가</th><th>등락률</th><th>거래량</th><th>거래대금</th></tr></thead>'
   +     '<tbody>'
@@ -914,7 +916,7 @@ function calcEntrants(date, topN){
   return { prevDate, rows: currTop.map(r=>{
     const key = r.code||r.name;
     const prevRank = prevDate ? (prevMap[key]??null) : null;
-    const isNew = !prevDate || prevRank==null || !validRank(prevRank) || (topN && prevRank>topN);
+    const isNew = !prevDate || prevRank==null || !validRank(prevRank) || (!topN || prevRank>topN);
     return {...r, prevDate, prevRank, isNew};
   }).filter(r=>r.isNew)};
 }
@@ -1008,17 +1010,6 @@ let TOP10_PERIOD = 20; // 독립 기간 (1/5/10/20/50/100/200/0=전체)
 let TOP10_RANK = {min:1, max:20};  // 순위 범위 기준
 let TOP10_SORT = 'momentum'; // 정렬: momentum/days/inflow/avgrank
 
-const TOP10_PERIOD_OPTS = [
-  {v:1,  l:'1일'},
-  {v:5,  l:'5일'},
-  {v:10, l:'10일'},
-  {v:20, l:'20일'},
-  {v:50, l:'50일'},
-  {v:100,l:'100일'},
-  {v:200,l:'200일'},
-  {v:0,  l:'전체'}
-];
-
 function setTop10Period(v){
   TOP10_PERIOD = Number(v);
   renderTop10();
@@ -1036,7 +1027,7 @@ function setTop10Rank(v){
 
 function top10PeriodSelHtml(){
   return '<select class="sel period-sel" onchange="setTop10Period(this.value)" aria-label="기간 선택">'
-    + TOP10_PERIOD_OPTS.map(function(o){
+    + PERIOD_OPTS.map(function(o){
         return '<option value="'+o.v+'"'+(TOP10_PERIOD===o.v?' selected':'')+'>'+o.l+'</option>';
       }).join('')
     + '</select>';
@@ -1198,7 +1189,7 @@ function renderTop10(){
     // 1) 출현율 (0~25)
     const sRate = rate/100*25;
     // 2) 평균순위 점수 (1위=만점, 10위=최저) (0~25)
-    const sRank = avgRank!=null ? (Math.max(0,(11-avgRank)/10))*25 : 0;
+    const sRank = avgRank!=null ? (Math.max(0,(TOP10_RANK.max+1-avgRank)/TOP10_RANK.max))*25 : 0;
     // 3) 순위 추세 (0~20): +3 이상 개선 만점, -3 이하 0
     const sTrend = rankTrend!=null ? Math.max(0,Math.min(20,(rankTrend+3)/6*20)) : 10;
     // 4) 자금 유입 (0~20): +50% 이상 만점, -50% 이하 0
@@ -1288,7 +1279,7 @@ function renderTop10(){
       return '<div class="sc hot-sc">'
         +'<div class="sc-title">🔥 주목 종목 <span class="sub">새로 진입했거나 자금이 급증한 종목</span></div>'
         +'<div class="hot-grid">'
-        + hotStocks.slice(0,6).map(function(s){
+        + hotStocks.slice(0, MAX_HOT_STOCKS).map(function(s){
             const tag = s.isNew
               ? '<span class="hot-tag hot-new">🆕 신규진입</span>'
               : '<span class="hot-tag hot-surge">💰 자금급증</span>';
@@ -1404,7 +1395,7 @@ function renderTop10(){
 
   // ── 날짜별 TOP 10 히트맵 (최근 20일 이하만 표시)
   + (function(){
-      const viewDates = dates.slice(0,20);
+      const viewDates = dates.slice(0, TOP10_PERIOD||20);
       if(viewDates.length < 2) return '';
       const allNames = stocks.map(function(s){return s.name;});
       return '<div class="sc">'
@@ -1594,12 +1585,12 @@ function openCfgModal(){
   const m=document.getElementById('cfgModal'); if(m){ m.classList.add('modal-open'); document.body.style.overflow='hidden'; }
 }
 function closeCfgModal(e){ if(e&&e.target!==e.currentTarget) return; const m=document.getElementById('cfgModal'); if(m){ m.classList.remove('modal-open'); document.body.style.overflow=''; } }
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCfgModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCfgModal(e); });
 function saveCfg(){
   const w=document.getElementById('cfgWorkerUrl').value.trim();
   const v=document.getElementById('cfgVolumeDbId').value.trim();
   if(w) CFG.workerUrl=w; if(v) CFG.volumeDbId=v;
-  try{ localStorage.setItem('vr_workerUrl',CFG.workerUrl); localStorage.setItem('vr_volumeDbId',CFG.volumeDbId); }catch(e){}
+  try{ var store=document.getElementById('cfgSessionOnly')?.checked ? sessionStorage : localStorage; store.setItem('vr_workerUrl',CFG.workerUrl); store.setItem('vr_volumeDbId',CFG.volumeDbId); }catch(e){}
   closeCfgModal(); loadData();
 }
 function updateCfgStatus(ok){
@@ -1626,11 +1617,10 @@ function loadDemo(reason, silent){
 function friendlyErr(msg){ msg=msg||'오류'; if(msg.includes('401')||msg.includes('403')) return '인증 오류'; if(msg.includes('404')) return 'DB 없음'; if(msg.includes('Worker')) return 'Worker URL 오류'; if(msg.includes('Failed to fetch')) return '네트워크 오류'; return msg; }
 
 async function loadData(){
-  if(!CFG.workerUrl){ openCfgModal(); return; }
   const btn=document.getElementById('syncBtn'), ico=document.getElementById('syncIcon'), lab=document.getElementById('syncLabel');
   if(btn) btn.disabled=true; if(ico) ico.classList.add('spinning'); if(lab) lab.textContent='로딩…';
   try{
-    const pages = await fetchAllPages(CFG.volumeDbId, [{property:'날짜',direction:'descending'},{property:'순위',direction:'ascending'}]);
+    const pages = await fetchAllPages(CFG.volumeDbId, [{property:'날짜',direction:'descending'},{property:'순위',direction:'ascending'},{timestamp:'created_time',direction:'ascending'}]);
     const parsed = parseVolumes(pages);
     if(!parsed.length) throw new Error('데이터 없음');
     IS_DEMO=false; VOLUMES=parsed; SEL_DATE='';
