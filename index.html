@@ -116,7 +116,7 @@ tbody tr:hover{background:var(--sky50);}
 .bar-fill{height:100%;border-radius:6px;transition:width .5s;min-width:2px;}
 .bar-val{font-size:12.5px;font-weight:800;color:var(--txt2);text-align:right;}
 
-/* ── HISTORY CHART ── */
+/* ── TREND CHART ── */
 .trend-wrap{width:100%;overflow-x:auto;}
 .trend-svg{display:block;min-width:280px;}
 
@@ -370,6 +370,7 @@ let CFG = (()=>{
 // ── 상태 ──
 let VOLUMES = [];
 let IS_DEMO = false;
+let IS_LOADING = false;
 let curTab = 'top10';
 let PERIOD = 20;         // 일별·순위변동 탭 기간
 let ENTRY_PERIOD = 20;   // 상위진입 탭 기간
@@ -380,6 +381,9 @@ let HIST_STOCK = '';     // 종목이력 선택 종목
 let HIST_YEAR  = '';     // 종목이력 날짜 필터 — 년
 let HIST_MONTH = '';     // 종목이력 날짜 필터 — 월
 let HIST_DAY   = '';     // 종목이력 날짜 필터 — 일
+let TOP10_PERIOD = 20;   // TOP10 탭 기간 (1/5/10/20/50/100/200/0=전체)
+let TOP10_RANK = {min:1, max:20};  // TOP10 탭 순위 범위
+let TOP10_SORT = 'momentum'; // TOP10 탭 정렬 기준
 
 const MAX_HOT_STOCKS = 6;
 
@@ -608,7 +612,7 @@ async function loadAllYears(dbId, sorts){
   const now=new Date();
   let yr=now.getFullYear(), mo=now.getMonth()+1;
   let allPages=[], empty=0;
-  while(empty<3 && yr>=now.getFullYear()-2){
+  while(empty<13 && yr>=2023){
     const ms=String(mo).padStart(2,'0');
     const ny=mo===12?yr+1:yr, nm=mo===12?1:mo+1;
     const nd=`${ny}-${String(nm).padStart(2,'0')}-01`;
@@ -647,7 +651,7 @@ function parseVolumes(pages){
       vol:numOr(getVal(pr['거래량'])),
       amt:numOr(getVal(pr['거래대금'])),
     };
-  }).filter(r=>r.name&&r.date&&(r.rank!=null&&r.rank<=20));
+  }).filter(r=>r.name&&r.date&&(r.rank!=null&&r.rank>0&&r.rank<=20));
 }
 
 // ════════════════════════════════════════════════
@@ -803,6 +807,7 @@ function renderDaily(){
     ])
   + '<div class="toolbar"><div class="f-row">'
   +   '<span class="f-label">날짜</span>'+dateTripleSelHtml()
+  +   '<span style="font-size:13px;font-weight:700;color:var(--txt2)">'+rows.length+'건</span>'
   + '</div></div>'
   + '<div class="sc"><div class="sc-title">거래대금 상위 <span class="sub">'+esc(SEL_DATE)+'</span></div>'
   +   '<div class="bars">'+rows.map(r=>{
@@ -843,9 +848,10 @@ function consecAppear(name, fromDate){
   const allDates=distinctDatesDesc(VOLUMES);
   const idx=allDates.indexOf(fromDate);
   if(idx<0) return 0;
+  const appeared=new Set(VOLUMES.filter(r=>r.name===name).map(r=>r.date));
   let count=0;
   for(let i=idx;i<allDates.length;i++){
-    if(VOLUMES.some(r=>r.date===allDates[i]&&r.name===name)) count++; else break;
+    if(appeared.has(allDates[i])) count++; else break;
   }
   return count;
 }
@@ -885,6 +891,7 @@ function renderChange(){
     ])
   + '<div class="toolbar"><div class="f-row">'
   +   '<span class="f-label">기준일</span>'+dateTripleSelHtml()
+  +   '<span style="font-size:13px;font-weight:700;color:var(--txt2)">'+rows.length+'건</span>'
   + '</div></div>'
   + '<div class="sc"><div class="sc-title">순위 변동 <span class="sub">'+esc(SEL_DATE)+'</span></div>'
   +   '<div class="tbl-wrap"><table>'
@@ -977,6 +984,7 @@ function renderEntry(){
   + '<div class="toolbar"><div class="f-row">'
   +   '<span class="f-label">기간</span>'+periodSelHtml('entPeriod','setEntryPeriod(this.value)',ENTRY_PERIOD)
   +   '<span class="f-label">순위</span><select class="sel period-sel" onchange="setEntrantN(this.value)">'+topNOpts+'</select>'
+  +   '<span style="font-size:13px;font-weight:700;color:var(--txt2)">'+rowsInPeriod(ENTRY_PERIOD).length+'건</span>'
   + '</div></div>'
 
   // 당일 신규 진입 테이블
@@ -1024,10 +1032,6 @@ function setEntrantN(v){ ENTRANT_TOP_N=Number(v)||20; renderEntry(); }
 // ════════════════════════════════════════════════
 // TAB 4 — TOP 10 분석
 // ════════════════════════════════════════════════
-let TOP10_PERIOD = 20; // 독립 기간 (1/5/10/20/50/100/200/0=전체)
-let TOP10_RANK = {min:1, max:20};  // 순위 범위 기준
-let TOP10_SORT = 'momentum'; // 정렬: momentum/days/inflow/avgrank
-
 function setTop10Period(v){
   TOP10_PERIOD = Number(v);
   renderTop10();
@@ -1290,6 +1294,7 @@ function renderTop10(){
           return '<option value="'+k+'"'+(TOP10_SORT===k?' selected':'')+'>'+sortLabels[k]+'</option>';
         }).join('')
   +   '</select>'
+  +   '<span style="font-size:13px;font-weight:700;color:var(--txt2)">'+rowsInPeriod(TOP10_PERIOD).length+'건</span>'
   + '</div></div>'
 
   // ── 🔥 주목 종목 (신규진입·자금급증) — 매매 타이밍 포착
@@ -1411,10 +1416,12 @@ function renderTop10(){
   +   '</div>'
   + '</div>'
 
-  // ── 날짜별 TOP 10 히트맵 (최근 20일 이하만 표시)
+  // ── 날짜별 TOP 히트맵
   + (function(){
-      const viewDates = dates.slice(0, TOP10_PERIOD||20);
+      const viewDates = dates.slice(0, TOP10_PERIOD > 0 ? TOP10_PERIOD : Math.min(dates.length, 30));
       if(viewDates.length < 2) return '';
+      const viewSet = new Set(viewDates);
+      const rowMap = new Map(rows.filter(function(r){return viewSet.has(r.date);}).sort(function(a,b){return b.rank-a.rank;}).map(function(r){return [r.date+'|'+r.name, r];}));
       const allNames = stocks.map(function(s){return s.name;});
       return '<div class="sc">'
         +'<div class="sc-title">날짜별 출현 현황 <span class="sub">최근 '+viewDates.length+'일 · 셀=등락률</span></div>'
@@ -1431,7 +1438,7 @@ function renderTop10(){
             return '<tr>'
               +'<td class="l t-name" style="padding-left:6px;font-size:14px;cursor:pointer" onclick="goHistory(\''+esc(name)+'\')">'+esc(name)+'</td>'
               + viewDates.map(function(d){
-                  const r = rows.find(function(x){return x.date===d&&x.name===name;});
+                  const r = rowMap.get(d+'|'+name);
                   if(!r) return '<td style="background:var(--gray50);text-align:center;font-size:13px;color:var(--txt3)">-</td>';
                   const bg = safeN(r.chg)?'#E0EAF5':(r.chg>0?'rgba(216,48,47,.13)':(r.chg<0?'rgba(37,99,201,.13)':'#f1efe8'));
                   const cl = chgCls(r.chg);
@@ -1465,8 +1472,12 @@ function renderHistory(){
   const avgRank = rankVals.length ? (rankVals.reduce((s,v)=>s+v,0)/rankVals.length).toFixed(1) : '-';
   const bestRank = rankVals.length ? Math.min(...rankVals) : '-';
   const worstRank = rankVals.length ? Math.max(...rankVals) : '-';
-  const totalDays = getPeriodDates(HIST_PERIOD).length;
-  const appearRate = totalDays>0 ? Math.round(histRows.length/totalDays*100) : 0;
+  const filteredDays = getPeriodDates(HIST_PERIOD).filter(d=>
+    (!HIST_YEAR  || d.startsWith(HIST_YEAR)) &&
+    (!HIST_MONTH || d.slice(5,7)===HIST_MONTH) &&
+    (!HIST_DAY   || d.slice(8,10)===HIST_DAY)
+  ).length;
+  const appearRate = filteredDays>0 ? Math.round(histRows.length/filteredDays*100) : 0;
   const amtVals = histRows.map(r=>r.amt).filter(a=>!safeN(a));
   const avgAmt = amtVals.length ? amtVals.reduce((s,v)=>s+v,0)/amtVals.length : null;
   const stockOpts = allStocks.map(n=>'<option value="'+esc(n)+'"'+(HIST_STOCK===n?' selected':'')+'>'+esc(n)+'</option>').join('');
@@ -1483,6 +1494,7 @@ function renderHistory(){
   + '<div class="toolbar"><div class="f-row">'
   +   '<span class="f-label">기간</span>'+periodSelHtml('hisPeriod','setHistPeriod(this.value)',HIST_PERIOD)
   +   '<span class="f-label">종목</span><select class="sel" onchange="setHistStock(this.value)">'+stockOpts+'</select>'
+  +   '<span style="font-size:13px;font-weight:700;color:var(--txt2)">'+rowsInPeriod(HIST_PERIOD).length+'건</span>'
   + '</div></div>'
   + (histRows.length===0
     ? '<div class="empty"><div class="ico">📭</div><div class="msg">해당 기간 데이터 없음</div></div>'
@@ -1565,7 +1577,8 @@ function kpiRow(items){
 }
 function emptyPanel(){
   if(!CFG.workerUrl) return '<div class="empty"><div class="ico">🔌</div><div class="msg">Notion DB가 연결되지 않았습니다</div><div class="sub">우측 상단 <b>설정</b>에서 Worker URL을 입력하세요</div></div>';
-  return '<div class="sc"><div class="skel" style="height:280px"></div></div>';
+  if(IS_LOADING) return '<div class="sc"><div class="skel" style="height:280px"></div></div>';
+  return '<div class="empty"><div class="ico">📊</div><div class="msg">데이터 없음</div><div class="sub">새로고침을 눌러 데이터를 불러오세요</div></div>';
 }
 function renderCurrent(){
   if(curTab==='daily') renderDaily();
@@ -1622,7 +1635,7 @@ function toast(msg){ const t=document.getElementById('toast'); if(!t) return; t.
 // ════════════════════════════════════════════════
 // 데모 폴백
 // ════════════════════════════════════════════════
-function loadDemo(reason, silent){
+function loadDemo(reason){
   IS_DEMO=true; VOLUMES=window.DEMO_VOLUMES.slice(); SEL_DATE='';
   renderCurrent();
   const lu=document.getElementById('lastUpdate'); if(lu){ lu.textContent='● 데모 데이터 (미연결)'; lu.style.color='rgba(255,214,150,.95)'; }
@@ -1637,15 +1650,17 @@ function friendlyErr(msg){ msg=msg||'오류'; if(msg.includes('401')||msg.includ
 async function loadData(){
   const btn=document.getElementById('syncBtn'), ico=document.getElementById('syncIcon'), lab=document.getElementById('syncLabel');
   if(btn) btn.disabled=true; if(ico) ico.classList.add('spinning'); if(lab) lab.textContent='로딩…';
+  IS_LOADING=true; renderCurrent();
   try{
     const pages = await loadAllYears(CFG.volumeDbId, [{property:'날짜',direction:'descending'},{property:'순위',direction:'ascending'}]);
     const parsed = parseVolumes(pages);
     if(!parsed.length) throw new Error('데이터 없음');
-    IS_DEMO=false; VOLUMES=parsed; SEL_DATE='';
+    IS_DEMO=false; IS_LOADING=false; VOLUMES=parsed; SEL_DATE='';
     renderCurrent();
     updateCfgStatus(true);
     toast('로드 완료 — '+VOLUMES.length+'건');
   }catch(e){
+    IS_LOADING=false;
     updateCfgStatus(false);
     loadDemo(friendlyErr(e.message));
   }finally{
@@ -1661,7 +1676,7 @@ else{ applyHeaderOffset(); window.addEventListener('resize',applyHeaderOffset); 
 // ── 초기 진입 ──
 (function init(){
   updateCfgStatus(undefined);
-  loadDemo('초기화', true);  // silent: 초기 토스트 미표시
+  loadDemo('초기화');
   loadData();
 })();
 </script>
