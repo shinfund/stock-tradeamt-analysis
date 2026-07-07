@@ -320,25 +320,20 @@ tbody tr:hover{background:var(--sky50);}
     <div class="modal-box" onclick="event.stopPropagation()">
       <div class="modal-title">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Notion DB 연동 설정
+        로그인
       </div>
       <div class="modal-field">
-        <label class="modal-label">Cloudflare Worker URL</label>
-        <input id="cfgWorkerUrl" class="modal-input" type="text" placeholder="https://your-worker.workers.dev"/>
-        <div class="modal-hint">Notion API 프록시 주소 · 브라우저 localStorage에 평문 저장 (개인 기기 권장)</div>
-      </div>
-      <div class="modal-field">
-        <label class="modal-label">거래대금 DB ID</label>
-        <input id="cfgVolumeDbId" class="modal-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
-        <div class="modal-hint">거래대금상위DB · 저장값은 XX로 마스킹 표시</div>
+        <label class="modal-label" for="cfgPassword">공용 비밀번호</label>
+        <input id="cfgPassword" class="modal-input" type="password" placeholder="비밀번호 입력" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <div class="modal-hint" id="loginStatusHint"></div>
       </div>
       <label style="font-size:12px;color:var(--txt2);display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer">
         <input type="checkbox" id="cfgSessionOnly" style="width:14px;height:14px">
         이 세션만 저장 (공용 기기 권장)
       </label>
       <div class="modal-btns">
-        <button class="modal-cancel" onclick="closeCfgModal()">취소</button>
-        <button class="modal-save" onclick="saveCfg()">저장 후 불러오기</button>
+        <button class="modal-cancel" onclick="doLogout()">로그아웃</button>
+        <button class="modal-save" onclick="doLogin()">로그인</button>
       </div>
     </div>
   </div>
@@ -393,16 +388,39 @@ tbody tr:hover{background:var(--sky50);}
 // ════════════════════════════════════════════════
 // 설정
 // ════════════════════════════════════════════════
-const DEFAULT_WORKER = '';
-const DEF_VOLUME_DB  = '';
+// ── Worker/DB 연동 정보 (고정값 — 더 이상 사용자 입력 아님, 접근 제어는 로그인 토큰으로) ──
+const WORKER_URL = 'https://notion-proxy.shinfund.workers.dev';
+const VOLUME_DB_ID = '36159c8c-9c0a-80fd-a656-daeb46ec25d5';
 
-let CFG = (()=>{
+let CFG = { workerUrl: WORKER_URL, volumeDbId: VOLUME_DB_ID, authToken:'', authExpires:0 };
+(()=>{
   try{
-    return {
-      workerUrl: sessionStorage.getItem('vr_workerUrl') || localStorage.getItem('vr_workerUrl') || DEFAULT_WORKER,
-      volumeDbId: sessionStorage.getItem('vr_volumeDbId') || localStorage.getItem('vr_volumeDbId') || DEF_VOLUME_DB,
-    };
-  }catch(e){ return {workerUrl:DEFAULT_WORKER, volumeDbId:DEF_VOLUME_DB}; }
+    CFG.authToken   = sessionStorage.getItem('vr_authToken') || localStorage.getItem('vr_authToken') || '';
+    CFG.authExpires = parseInt(sessionStorage.getItem('vr_authExpires') || localStorage.getItem('vr_authExpires') || '0', 10) || 0;
+  }catch(e){}
+})();
+function isAuthed(){ return !!CFG.authToken && Date.now() < CFG.authExpires; }
+
+// ── Worker 요청에 로그인 토큰 자동 첨부 + 401 시 로그인 모달 재오픈 ──
+(function(){
+  var _fetch = window.fetch.bind(window);
+  window.fetch = function(input, init){
+    init = init || {};
+    var urlStr = typeof input === 'string' ? input : (input && input.url) || '';
+    if(urlStr.indexOf(WORKER_URL) === 0){
+      var headers = new Headers(init.headers || {});
+      if(CFG.authToken) headers.set('Authorization', 'Bearer '+CFG.authToken);
+      init = Object.assign({}, init, {headers: headers});
+    }
+    return _fetch(input, init).then(function(res){
+      if(res.status === 401 && urlStr.indexOf(WORKER_URL) === 0){
+        CFG.authToken=''; CFG.authExpires=0;
+        try{ localStorage.removeItem('vr_authToken'); localStorage.removeItem('vr_authExpires'); sessionStorage.removeItem('vr_authToken'); sessionStorage.removeItem('vr_authExpires'); }catch(e){}
+        openLoginModal();
+      }
+      return res;
+    });
+  };
 })();
 
 // ── 상태 ──
@@ -1686,7 +1704,7 @@ function kpiRow(items){
   }).join('')+'</div>';
 }
 function emptyPanel(){
-  if(!CFG.workerUrl) return '<div class="empty"><div class="ico">🔌</div><div class="msg">Notion DB가 연결되지 않았습니다</div><div class="sub">우측 상단 <b>설정</b>에서 Worker URL을 입력하세요</div></div>';
+  if(!isAuthed()) return '<div class="empty"><div class="ico">🔌</div><div class="msg">로그인이 필요합니다</div><div class="sub">우측 상단 <b>설정</b>에서 로그인하세요</div></div>';
   if(IS_LOADING) return '<div class="sc"><div class="skel" style="height:280px"></div></div>';
   return '<div class="empty"><div class="ico">📊</div><div class="msg">데이터 없음</div><div class="sub">새로고침을 눌러 데이터를 불러오세요</div></div>';
 }
@@ -1715,25 +1733,47 @@ document.getElementById('nav').addEventListener('click', e=>{
 // ════════════════════════════════════════════════
 // 설정 모달
 // ════════════════════════════════════════════════
-function maskVal(v){
-  if(!v) return '';
-  if(v.startsWith('http')){ try{ const u=new URL(v); const h=u.hostname; const p=h.split('.'); const m=p[0].length>4?p[0].slice(0,2)+'XX'+p[0].slice(-2)+'.'+p.slice(1).join('.'):'XX.'+p.slice(1).join('.'); return u.protocol+'//'+m; }catch(e){ return v.slice(0,6)+'XX...'; } }
-  if(/^[0-9a-f\-]{32,36}$/i.test(v)){ const c=v.replace(/-/g,''); return c.slice(0,4)+'-XXXX-XXXX-XXXX-'+c.slice(-4); }
-  return v.slice(0,3)+'XX...';
+function updateLoginStatusHint(){
+  const h=document.getElementById('loginStatusHint');
+  if(!h) return;
+  h.textContent = isAuthed() ? '로그인 상태 (만료: '+new Date(CFG.authExpires).toLocaleString('ko-KR')+')' : '로그인이 필요합니다';
 }
 function openCfgModal(){
-  const set=(id,val)=>{ const el=document.getElementById(id); if(!el) return; if(val){ el.value=''; el.placeholder=maskVal(val); el.dataset.saved='1'; }else{ el.value=''; delete el.dataset.saved; } };
-  set('cfgWorkerUrl',CFG.workerUrl); set('cfgVolumeDbId',CFG.volumeDbId);
+  const pEl=document.getElementById('cfgPassword');
+  if(pEl) pEl.value='';
+  updateLoginStatusHint();
   const m=document.getElementById('cfgModal'); if(m){ m.classList.add('modal-open'); document.body.style.overflow='hidden'; }
 }
+function openLoginModal(){ openCfgModal(); }
 function closeCfgModal(e){ if(e&&e.target!==e.currentTarget) return; const m=document.getElementById('cfgModal'); if(m){ m.classList.remove('modal-open'); document.body.style.overflow=''; } }
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeCfgModal(e); });
-function saveCfg(){
-  const w=document.getElementById('cfgWorkerUrl').value.trim();
-  const v=document.getElementById('cfgVolumeDbId').value.trim();
-  if(w) CFG.workerUrl=w; if(v) CFG.volumeDbId=v;
-  try{ var store=document.getElementById('cfgSessionOnly')?.checked ? sessionStorage : localStorage; store.setItem('vr_workerUrl',CFG.workerUrl); store.setItem('vr_volumeDbId',CFG.volumeDbId); }catch(e){}
-  closeCfgModal(); loadData();
+function doLogin(){
+  const pEl=document.getElementById('cfgPassword');
+  const pw=pEl.value.trim();
+  if(!pw){ alert('비밀번호를 입력해주세요.'); return; }
+  fetch(WORKER_URL+'/login', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pw})
+  }).then(r=>r.json().then(d=>({ok:r.ok,data:d})))
+    .then(({ok,data})=>{
+      if(!ok){ alert(data&&data.error?data.error:'로그인 실패'); return; }
+      CFG.authToken=data.token; CFG.authExpires=data.expires;
+      try{
+        var store = document.getElementById('cfgSessionOnly')?.checked ? sessionStorage : localStorage;
+        store.setItem('vr_authToken', CFG.authToken);
+        store.setItem('vr_authExpires', String(CFG.authExpires));
+      }catch(e){}
+      closeCfgModal(); loadData();
+    })
+    .catch(()=>alert('로그인 요청 실패 — 네트워크를 확인하세요.'));
+}
+function doLogout(){
+  CFG.authToken=''; CFG.authExpires=0;
+  try{
+    localStorage.removeItem('vr_authToken'); localStorage.removeItem('vr_authExpires');
+    sessionStorage.removeItem('vr_authToken'); sessionStorage.removeItem('vr_authExpires');
+  }catch(e){}
+  updateLoginStatusHint();
+  loadDemo('로그아웃됨');
 }
 function updateCfgStatus(ok){
   const dot=document.getElementById('cfgDot'); if(dot) dot.classList.toggle('off',ok!==true);
@@ -1787,8 +1827,8 @@ else{ applyHeaderOffset(); window.addEventListener('resize',applyHeaderOffset); 
 // ── 초기 진입 ──
 (function init(){
   updateCfgStatus(undefined);
-  loadDemo('초기화');
-  loadData();
+  if(isAuthed()){ loadData(); }
+  else { loadDemo('로그인이 필요합니다'); openLoginModal(); }
 })();
 </script>
 </body>
